@@ -80,21 +80,21 @@ void mysql_connect(MYSQL *mysql)
     printf("Connect database sucessfully!\n\n");
 }  
 
-/* 插入数据 field用逗号分隔开
+/* 插入数据 field和value为插入的列名和值，多列都用逗号分隔开
 返回值为0表示成功插入
-message example：sprintf(message,"'%s','%s'",uName,pWord);
+message example：sprintf(value,"'%s','%s'",uName,pWord);
  */
-int insert_data(MYSQL *mysql, char field[],char table_name[],char message[])
+int insert_data(MYSQL *mysql, char field[],char table_name[],char value[])
 {  
     int t;  
-    char *head = "insert into ";  
+    const char *head = "insert into ";  
     char query[200];
-    char *left = "(";  
-    char *right = ") ";  
-    char *values = "values";  
+    const char *left = "(";  
+    const char *right = ") ";  
+    const char *values = "values";  
     /* 把几个变量字符串连接成一个完整的mysql命令 */  
     sprintf(query, "%s%s%s%s%s%s%s%s%s", head, table_name, left, 
-                            field, right, values, left, message, right);
+                            field, right, values, left, value, right);
     printf("%s\n", query);  
 
     t = mysql_real_query(mysql, query, strlen(query));
@@ -114,7 +114,7 @@ del_name和del_value:要删除的条件列名和值
 int delete_data(MYSQL *mysql,char table_name[],char del_name[],char del_value[])
 {  
     int t;
-    char *head = "delete from ";  
+    const char *head = "delete from ";  
     char query[200];  
     sprintf(query, "%s%s where %s =\"%s\"", head, table_name, del_name,del_value);
     printf("%s\n", query);
@@ -138,7 +138,7 @@ find_field和find_value:寻找的列名和值
 int update_data(MYSQL *mysql ,char table_name[],char new_field_and_value[],char find_field[],char find_value[])
 {  
     int t;
-    char *head = "update ";
+    const char *head = "update ";
     char query[100];
     sprintf(query, "%s%s set %s where %s='%s'", head, table_name, new_field_and_value,find_field, find_value);
     printf("%s\n", query);

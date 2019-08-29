@@ -83,7 +83,7 @@ int userRegister(char *buf){
 void * handClient(void *arg)
 {
 	char buf[1024]={0};
-	int *p = arg;
+	int *p = static_cast<int*>(arg);
 	int confd = *p;
 	while(1)
 	{
@@ -119,8 +119,8 @@ int main()
 	memset(&myaddr,0,sizeof(myaddr));
 	
 	myaddr.sin_family = AF_INET;
-	myaddr.sin_addr.s_addr = inet_addr("172.17.209.241");
-	myaddr.sin_port = htons(15128);
+	myaddr.sin_addr.s_addr = inet_addr("172.17.210.103");
+	myaddr.sin_port = htons(15129);
 
 	int lisfd = socket(AF_INET,SOCK_STREAM,0);
 	if(lisfd == 0)
@@ -138,7 +138,7 @@ int main()
 	printf("begin accpet\n");
 	while(1)
 	{
-		int confd = accept(lisfd, (struct sockaddr*)&cliaddr,&socklen);
+		int confd = accept(lisfd, (struct sockaddr*)&cliaddr,(socklen_t*)&socklen);
 		if(confd == -1)
 		{
 			printf("accpet\n");
