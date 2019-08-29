@@ -6,18 +6,32 @@
 #include <pthread.h>
 #include <mysql/mysql.h>
 #include "mysql_helper.h"
-int clientfd[1024]={0};
+#include <map>
+#include<vector>
+using namespace std;
+map<int,int>clientfd;
 
+struct UserInformation
+{
+	const int userid;
+	const int userfd;
+	const char ipaddr[32];
+};
 
 /* 返回值0为正常，用户不存在返回1，密码错误发生错误返回-1， */  
 int userLogin(char *buf)
 {
 
-	char uName[32]={0};
+	char uId[32]={0};
 	char pWord[32]={0};
-	sscanf(buf+2,"%[^|]|%s",uName,pWord);
+	/*TODO
+
+
+
+	sscanf(buf+2,"%[^|]|%s",uId,pWord);
+	*/
 	char sqlStr[1024]={0};
-	sprintf(sqlStr,"%s'%s'", "select password from User where Name=",uName);
+	sprintf(sqlStr,"%s'%s'", "select Password from User where Id=",uId);
 	printf("sqlStr=%s\n",sqlStr);
     MYSQL *mysql = mysql_init(NULL);           // 创建一个MYSQL句柄并初始化
     if (!mysql) {
@@ -48,7 +62,7 @@ int userLogin(char *buf)
 		}	//	
 		if(strcmp(row[0], pWord) == 0)
 		{
-			printf("用户：%s登录成功\n",uName);
+			printf("用户：%s登录成功\n",uId);
 			return 0;
 		}
 		else
@@ -83,12 +97,14 @@ int userRegister(char *buf){
 void * handClient(void *arg)
 {
 	char buf[1024]={0};
-	int *p = static_cast<int*>(arg);
-	int confd = *p;
+	struct  UserInformation *p = static_cast<struct  UserInformation*>(arg);
+	int confd = p->userfd;
 	while(1)
 	{
 		if(recv(confd,buf,sizeof(buf),0) == 0)
-		{
+		{	printf("用户 %d 已退出",p->userid);
+			clientfd.erase(p->userid);
+			delete[] p;
 			pthread_exit(NULL);
 		}
 		printf("recv=%s\n",buf);
@@ -144,13 +160,30 @@ int main()
 			printf("accpet\n");
 			return -1;
 		}
+		char buf[1005]={0};
+		int userid=0;
+		recv(confd,buf,sizeof(buf),0);
+		/*TODO
+		if regrister
+		{
 
-		clientfd[i] = confd;
-		i++;
+		}
+		else login
+		{
 
+		}
+		userid =;
+		clientfd[userid]=confd;
+		*/
+		clientfd[userid] = confd;
 		printf("newclient ip=%s\t,port=%d\n",inet_ntoa(cliaddr.sin_addr),ntohs(cliaddr.sin_port));
-
-		pthread_create(&tid,NULL,handClient,&clientfd[i-1]);
+		struct  UserInformation* newuser=new struct  UserInformation(
+		 {
+			userid,
+			confd,
+			*inet_ntoa(cliaddr.sin_addr)
+		});
+		pthread_create(&tid,NULL,handClient,newuser);
 
 		
 
