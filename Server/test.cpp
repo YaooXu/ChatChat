@@ -53,7 +53,7 @@ int get_recent_user()
     }
     mysql_connect(mysql);
     char sqlStr[1024]={0};
-    sprintf(sqlStr,"select * from User where Id in(select distinct Id2 from ChatContent  where Id1='%s')",id);
+    sprintf(sqlStr,"select Id1,Id2,Content from ChatContent where Id1='%s' or Id2 ='%s' order by Time desc limit 1;",id,id);
     printf("%s\n",sqlStr);
     if(mysql_query(mysql,sqlStr) != 0)
 	{

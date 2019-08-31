@@ -26,7 +26,8 @@ CREATE TABLE ChatContent
 (
 Id1 int,
 Id2 int, 
-ReadState int,
+ReadState1 int,
+ReadState2 int,
 Time DATETIME,
 Content text,
 constraint s1 foreign key(Id1,Id2) references Friend(Id1,Id2)
