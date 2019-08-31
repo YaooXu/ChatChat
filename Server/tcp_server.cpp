@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <mysql/mysql.h>
 #include "mysql_helper.h"
+#include "UnrepeatId.h"
 #include <map>
 #include<vector>
 using namespace std;
