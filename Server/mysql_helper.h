@@ -1,3 +1,7 @@
+#ifndef _MYSQL_HELPER_H
+#define _MYSQL_HELPER_H
+
+
 #include <stdio.h>  
 #include <stdlib.h>  
 #include <string.h>  
@@ -12,3 +16,4 @@ int update_data(MYSQL *mysql ,char table_name[],char new_field_and_value[],char 
 int delete_data(MYSQL *mysql,char table_name[],char del_name[],char del_value[]);//删除数据
 void close_connection(MYSQL *mysql);                // 关闭mysql数据库
 
+#endif

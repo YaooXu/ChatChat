@@ -30,3 +30,4 @@ Time DATETIME,
 Content text,
 constraint s1 foreign key(Id1,Id2) references Friend(Id1,Id2)
 );
+

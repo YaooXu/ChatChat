@@ -19,16 +19,18 @@ struct UserInformation
 	const char ipaddr[32];
 };
 
-/* 返回值0为正常，用户不存在返回1，密码错误发生错误返回-1， */  
-int userLogin(char *buf)
+/***************************/
+/*名称： user_login
+/*描述： 用户登入功能
+/*参数：
+/*返回值0为正常，用户不存在返回1，密码错误发生错误返回-1
+/***************************/
+int user_login(char *buf)
 {
 
 	char uId[32]={0};
 	char pWord[32]={0};
 	/*TODO
-
-
-
 	sscanf(buf+2,"%[^|]|%s",uId,pWord);
 	*/
 	char sqlStr[1024]={0};
@@ -74,7 +76,7 @@ int userLogin(char *buf)
 }
 
 
-int userRegister(char *buf){
+int user_register(char *buf){
 	char uName[32]={0};
 	char pWord[32]={0};
 	sscanf(buf+2,"%[^|]|%s",uName,pWord);
@@ -112,10 +114,10 @@ void * handClient(void *arg)
 		switch(buf[0])
 		{
 			case '1':
-				userRegister(buf);
+				user_register(buf);
 				break;
 			case '2':
-				userLogin(buf);
+				user_login(buf);
 				break;
 
 
