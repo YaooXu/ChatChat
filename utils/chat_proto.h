@@ -10,14 +10,39 @@
 #ifndef _CHAT_PROTO_H
 #define _CHAT_PROTO_H
 
-#define REGISTER 0
-#define LOGIN 1
-#define GET_INFORMATION 2
-/*
+// 发给服务器的server_id
+#define REGISTER_REQ 1000
+#define LOGIN_REQ 1001
+#define RECENT_LIST_REQ 1002
+#define FRIEND_LIST_REQ 1003
+#define FRIEND_FIND_REQ 1004
+#define FRIEND_DELETE_REQ 1005
+#define FRIEND_VERIFY_REQ 1006
+#define FRIEND_GROUP_CHANGE_REQ 1007
+#define CREATE_GROUP_REQ 1008
+#define GET_FRIEND_INF_REQ 1009
+#define GET_MY_INF_REQ 1010
+#define CHANGE_MY_INF_REQ 1011
+#define MESSAGE_SEND 1012
 
-
-
-*/
+// 服务器给客户端的server_id
+// 分为NOTI 直接通知
+// REP 对于请求的回应
+#define REGISTER_REP 5000
+#define LOGIN_REP 5001
+#define RECENT_LIST_REP 5002
+#define FRIEND_LIST_REP 5003
+#define FRIEND_FIND_REP 5004
+#define FRIEND_DELETE_REP 5005
+#define FRIEND_VERIFY_REP 5006
+#define FRIEND_APPLI_NOTI 5007
+#define FRIEND_GROUP_CHANGE_REP 5008
+#define CREATE_GROUP_REP 5009
+#define GET_FRIEND_INF_REP 5010
+#define GET_MY_INF_REP 5011
+#define CHANGE_MY_INF_REP 5012
+#define MESSAGE_NOTI 5013
+#define SYSTEM_NOTI 5014
 
 const uint8_t MY_PROTO_MAGIC = 88;                    //
 const uint32_t MY_PROTO_MAX_SIZE = 10 * 1024 * 1024;  // 10M
@@ -89,7 +114,5 @@ private:
 void myProtoMsgPrint(MyProtoMsg &msg);
 
 uint8_t *encode(uint16_t server_id, Json::Value root);
-
-
 
 #endif
