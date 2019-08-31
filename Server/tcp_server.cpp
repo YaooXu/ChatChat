@@ -4,6 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+#include <mysql/mysql.h>
+#include "mysql_helper.h"
+#include "UnrepeatId.h"
 #include <sys/types.h>
 #include <map>
 #include <vector>
