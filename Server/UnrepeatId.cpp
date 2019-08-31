@@ -18,7 +18,6 @@ void random(int n)
 		disnum[index]=tmp;
 	}
 } 
-
 int getUnrepeatId()
 {
     if(disnum.size()==0) 

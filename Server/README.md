@@ -2,16 +2,16 @@
 CREATE TABLE User
 (
 Id int  primary key,
-LoginState int,
 Name varchar(255) NOT NULL,
 Password varchar(255) NOT NULL,
+Photo int,
 Sex int,
 Email varchar(255),
 Telephone varchar(255),
 Question varchar(255),
 Answer varchar(255),
 Description varchar(255),
-LastLoginDate DATETIME NOT NULL
+LastLoginTime  DATETIME
 );
 
 CREATE TABLE Friend
@@ -26,6 +26,7 @@ CREATE TABLE ChatContent
 (
 Id1 int,
 Id2 int, 
+ReadState int,
 Time DATETIME,
 Content text,
 constraint s1 foreign key(Id1,Id2) references Friend(Id1,Id2)
