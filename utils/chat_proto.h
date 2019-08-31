@@ -24,6 +24,7 @@
 #define GET_MY_INF_REQ 1010
 #define CHANGE_MY_INF_REQ 1011
 #define MESSAGE_SEND 1012
+#define HISTORY_MESSAGE_REQ 1013
 
 // 服务器给客户端的server_id
 // 分为NOTI 直接通知
@@ -43,6 +44,8 @@
 #define CHANGE_MY_INF_REP 5012
 #define MESSAGE_NOTI 5013
 #define SYSTEM_NOTI 5014
+#define HISTORY_MESSAGE_REP 5014
+
 
 const uint8_t MY_PROTO_MAGIC = 88;                    //
 const uint32_t MY_PROTO_MAX_SIZE = 10 * 1024 * 1024;  // 10M
