@@ -1,6 +1,8 @@
 #include "login.h"
 #include "ui_login.h"
 
+#include "../utils/chat_proto.cpp" // 暂时这样添加,直接把我整个源文件包含进来,但是可能会有重复定义
+
 Login::Login(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Login)
@@ -83,7 +85,7 @@ void Login::loginBtnOnclick()
     else
     {
         bool ok = true;
-//        userid = lineEditUserID->text().toInt(&ok);
+        //        userid = lineEditUserID->text().toInt(&ok);
 
         if (!ok)//如果lineEditUserID控件内容不是数字，提示用户错误
         {
@@ -95,19 +97,17 @@ void Login::loginBtnOnclick()
 
             qDebug() << "进入点击事件";
 
-            QString sendbuf = "2|";
             QString uName = lineEditUserID->text();
-            sendbuf += uName;
-            sendbuf += "|";
-            sendbuf += passwd;
-            qDebug() << sendbuf;
-            sendbuf.toStdString().c_str();
 
-            char*  ch;
-            QByteArray ba = sendbuf.toLatin1(); // must
-            ch=ba.data();
-            printf("发送 %s\n", ch);
-            sock.write(ch);
+            // 编码
+            uint32_t len = 0;
+            Json::Value message;
+            message["ID"] = uName.toStdString().c_str();
+            message["password"] = passwd.toStdString().c_str();
+            uint8_t *pData = encode(LOGIN_REQ, message, len);
+
+            qDebug() << "length : " << len;
+            sock.write((char *)pData, len);
 
         }
     }
@@ -127,23 +127,41 @@ void Login::handconnect()
 
 void Login::handData()
 {
-    QByteArray recvBuf =  sock.readAll();
-    QString buf(recvBuf);
-    qDebug() << buf;
-    //0|xxx
-    QStringList slist = buf.split("|");
-    if(slist.at(0) == "1")
-    {
-        QMessageBox::information(this, "提示", "Login success!");
-        islogin = true;
-        qDebug() << "islogin" << islogin;
-        close();
-        return;
+    // 解码需要用到长度,所以只能用sock.read
+    char recvBuf[1024];
+    int len = sock.read(recvBuf, 1024);
+
+    qDebug() << len;
+
+    // 建立一个解码器对象
+    MyProtoDeCode myDecode;
+    myDecode.clear();
+    myDecode.init();
+
+    // 需要转化为uint8_t类型字符串
+    uint8_t *pData = (uint8_t *)recvBuf;
+    if (!myDecode.parser(pData, len)) {
+        printf("parser falied!\n");
+    } else {
+        printf("parser successfully!, len = %d\n", len);
     }
-    else if(slist.at(0) == "0")
-    {
-        islogin = false;
-        QMessageBox::warning(this, "Error!", slist.at(1));
+
+    // 解码的结果存在结构体的一个队列里,直接通过.front访问
+    MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
+
+    int server_id = pMsg->head.server_id;
+
+    // status为状态码,只有NORMAL才是正常
+    qDebug() << pMsg->body["status"].asInt();
+    if (pMsg->body["status"].asInt() == NORMAL) {
+        qDebug() << "OK!";
+    } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
+        qDebug() << "PASSWORD WRONG";
+    } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {
+        qDebug() << "USER NOT EXSIT";
+    } else {
+        qDebug() << "UNKOWN ERROR";
     }
+
     return;
 }

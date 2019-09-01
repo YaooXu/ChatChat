@@ -1,5 +1,4 @@
-#ifndef CHATCHAT_H
-#define CHATCHAT_H
+#pragma once
 
 #include <QMainWindow>
 #include <QDebug>
@@ -23,7 +22,6 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QTextBrowser>
-
 
 #include"login.h"
 
@@ -50,5 +48,3 @@ private:
     QPushButton *group_Button;
     QPushButton *setting_Button;
 };
-
-#endif // CHATCHAT_H

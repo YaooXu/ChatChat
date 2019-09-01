@@ -1,5 +1,4 @@
-#ifndef LOGIN_H
-#define LOGIN_H
+#pragma once
 
 #include <QDialog>
 #include <QDebug>
@@ -9,6 +8,8 @@
 
 #include "chatchat.h"
 #include "main_weight.h"
+
+
 
 namespace Ui {
 class Login;
@@ -46,4 +47,3 @@ private:
     QPushButton *logoutBtn;
 };
 
-#endif // LOGIN_H
