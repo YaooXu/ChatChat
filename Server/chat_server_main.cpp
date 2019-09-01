@@ -8,9 +8,9 @@
 #include <cstdio>
 #include <map>
 #include <vector>
-#include "UnrepeatId.h"
+#include "../utils/chat_proto.cpp"
 #include "mysql_helper.h"
-#include "utils/chat_proto.cpp"
+#include "unrepeatId.h"
 
 using namespace std;
 map<int, int> ID2info;
@@ -67,7 +67,7 @@ void user_login(const char *ID, const char *password,
             status = NORMAL;
             break;
         } else {
-            printf("ID:%s 密码错误\n");
+            printf("ID:%s 密码错误\n", ID);
             status = EPASSWORD_WRONG;
             break;
         }
@@ -81,7 +81,7 @@ void user_login(const char *ID, const char *password,
 }
 
 void user_register(const char *name, const char *password,
-                  UserInformation *pUser_info) {
+                   UserInformation *pUser_info) {
     int RESPTYPE = REGISTER_REP;
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
@@ -146,70 +146,50 @@ void *handClient(void *arg) {
             }
 
             MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
-            switch (pMsg->head.server_id) {
-            case REGISTER_REQ:
+            int server_id = pMsg->head.server_id;
+            if (server_id == REGISTER_REQ) {
                 const char *name = pMsg->body["name"].asCString();
                 const char *password = pMsg->body["password"].asCString();
                 // 注册
                 user_register(name, password, pUser_info);
-                break;
-
-            case LOGIN_REQ:
+            } else if (server_id == LOGIN_REQ) {
                 // 登录
                 const char *ID = pMsg->body["ID"].asCString();
                 const char *password = pMsg->body["password"].asCString();
                 user_login(ID, password, pUser_info);
-                break;
-
-            case RECENT_LIST_REQ:
+            } else if (LOGIN_REQ == RECENT_LIST_REQ) {
                 const char *ID = pMsg->body["ID"].asCString();
                 // 最近消息列表
-                break;
-
-            case FRIEND_LIST_REQ:
+            } else if (server_id == FRIEND_LIST_REQ) {
                 const char *ID = pMsg->body["ID"].asCString();
                 // 好友列表
-                break;
-
-            case FRIEND_ADD_REQ:
+            } else if (server_id == FRIEND_ADD_REQ) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *group_id = pMsg->body["group_id"].asCString();
                 // 好友添加
-                break;
-
-            case FRIEND_DELETE_REQ:
+            } else if (server_id == FRIEND_DELETE_REQ) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 // 好友删除
-                break;
-
-            case FRIEND_VERIFY_REQ:
+            } else if (server_id == FRIEND_VERIFY_REQ) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *choose = pMsg->body["choose"].asCString();
                 const char *group_id = pMsg->body["group_id"].asCString();
                 // ID1处理ID2的添加申请
-                break;
-
-            case FRIEND_GROUP_CHANGE_REQ:
+            } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *group_id = pMsg->body["group_id"].asCString();
                 // 分组改变
-                break;
-
-            case GET_FRIEND_INF_REQ:
+            } else if (server_id == GET_FRIEND_INF_REQ) {
                 const char *ID = pMsg->body["ID"].asCString();
                 // 好友信息请求
-                break;
-
-            case GET_MY_INF_REQ:
+            } else if (server_id == GET_MY_INF_REQ) {
                 const char *ID = pMsg->body["ID"].asCString();
                 // 自身信息
-                break;
-
-            case CHANGE_MY_INF_REQ:
+            } else if (server_id == CHANGE_MY_INF_REQ) {
                 const char *ID = pMsg->body["ID"].asCString();
                 int photo = pMsg->body["photo"].asInt();
                 const char *name = pMsg->body["name"].asCString();
@@ -219,77 +199,73 @@ void *handClient(void *arg) {
                 const char *answer = pMsg->body["answer"].asCString();
                 const char *description = pMsg->body["description"].asCString();
                 // 修改个人信息
-                break;
-
-            case MESSAGE_SEND:
+            } else if (server_id == MESSAGE_SEND) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *message = pMsg->body["message"].asCString();
                 // 消息发送
-                break;
-
-            case HISTORY_MESSAGE_REQ:
+            } else if (server_id == HISTORY_MESSAGE_REQ) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 // 聊天记录
-                break;
             }
         }
         // send(confd,buf,strlen(buf),0);
     }
 }
 
+int PORT = 8000;
+
 int main() {
     int i = 0;
     pthread_t tid;
-    struct sockaddr_in myaddr;
-    struct sockaddr_in cliaddr;
-    int socklen = sizeof(cliaddr);
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t server_addr_len = sizeof(server_addr);
 
-    memset(&myaddr, 0, sizeof(myaddr));
+    memset(&server_addr, 0, server_addr_len);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = ntohs(PORT);
 
-    myaddr.sin_family = AF_INET;
-    myaddr.sin_addr.s_addr = inet_addr("172.17.210.103");
-    myaddr.sin_port = htons(15129);
+    if (1 != inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr)) {
+        perror("Invalid IP");
+        exit(1);
+    }
+    int listen_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (listen_fd == 0) {
-        printf("socket error\n");
-        return -1;
+    // 端口复用
+    int opt = 1;
+    // sockfd为需要端口复用的套接字
+    setsockopt(listen_sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&opt,
+               sizeof(opt));
+
+    if (bind(listen_sockfd, (const sockaddr *)&server_addr, server_addr_len) ==
+        -1) {
+        perror("Bind error");
+        printf("Server bind port: %d failed!\n", PORT);
+        exit(1);
     }
 
-    //给描述符绑定地址
-    if (bind(listen_fd, (struct sockaddr *)&myaddr, sizeof(myaddr)) != 0) {
-        printf("bind error\n");
-        return -1;
-    }
-
-    listen(listen_fd, 10);
-    printf("Start listening...");
+    listen(listen_sockfd, 10);
+    printf("Start listening...\n");
 
     char buf[1024] = {0};
 
     while (1) {
-        int confd = accept(listen_fd, (struct sockaddr *)&cliaddr,
-                           (socklen_t *)&socklen);
+        int confd = accept(listen_sockfd, (struct sockaddr *)&client_addr,
+                           (socklen_t *)&server_addr_len);
 
         if (confd == -1) {
             perror("connect error");
             // TODO: 针对连接错误的处理
             continue;
         }
-        // int user_id = 0;
 
-        // ID2info[user_id] = confd;
-        // struct UserInformation *newuser = new struct UserInformation(
-        //     {user_id, confd, *inet_ntoa(cliaddr.sin_addr)});
-
-        printf("newclient Ip=%s\t,Port=%d\n", inet_ntoa(cliaddr.sin_addr),
-               ntohs(cliaddr.sin_port));
+        printf("newclient Ip=%s\t,Port=%d\n", inet_ntoa(client_addr.sin_addr),
+               ntohs(client_addr.sin_port));
 
         struct UserInformation *new_user = new UserInformation();
         // 客户端的部分信息，此时还未登录
-        strcpy(new_user->ipaddr, inet_ntoa(cliaddr.sin_addr));
+        strcpy(new_user->ipaddr, inet_ntoa(client_addr.sin_addr));
         new_user->user_fd = confd;
 
         // 给每个用户创建一个线程

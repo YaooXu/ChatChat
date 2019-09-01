@@ -155,4 +155,5 @@ class User_info {
     int group_id;
 };
 
+
 #endif
