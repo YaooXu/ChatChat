@@ -14,11 +14,14 @@
 #define REGISTER_REQ 1000
 #define LOGIN_REQ 1001
 #define RECENT_LIST_REQ 1002
+
 #define FRIEND_LIST_REQ 1003
 #define FRIEND_FIND_REQ 1004
+#define FRIEND_ADD_REQ 1014
 #define FRIEND_DELETE_REQ 1005
 #define FRIEND_VERIFY_REQ 1006
 #define FRIEND_GROUP_CHANGE_REQ 1007
+
 #define CREATE_GROUP_REQ 1008
 #define GET_FRIEND_INF_REQ 1009
 #define GET_MY_INF_REQ 1010
@@ -46,6 +49,12 @@
 #define SYSTEM_NOTI 5014
 #define HISTORY_MESSAGE_REP 5014
 
+// 服务器状态码
+#define NORMAL 0
+#define EPASSWORD_WRONG 1
+#define EUSER_NOTEXSIT 2
+#define EDATABASE_WRECK 3
+// #define
 
 const uint8_t MY_PROTO_MAGIC = 88;                    //
 const uint32_t MY_PROTO_MAX_SIZE = 10 * 1024 * 1024;  // 10M
@@ -117,5 +126,33 @@ private:
 void myProtoMsgPrint(MyProtoMsg &msg);
 
 uint8_t *encode(uint16_t server_id, Json::Value root);
+
+// 请求好友列表返回的结构体
+class User_in_list {
+    char *name;
+    char *description;
+    int photo_id;
+    int group_id;
+};
+
+// 请求最近联系人列表返回的结构体
+class User_in_recent {
+    char *name;
+    int photo_id;
+    char *last_message;
+};
+
+// 查询好友时返回的结构体
+class User_info {
+    char *ID;
+    int photo_id;
+    char *name;
+    char *sex;
+    char *tel;
+    char *question;
+    char *answer;
+    char *description;
+    int group_id;
+};
 
 #endif

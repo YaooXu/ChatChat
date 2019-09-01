@@ -6,7 +6,7 @@ int main(int argc, char const *argv[]) {
     message["ID"] = "123456";
 
     uint32_t len = 0;
-    uint8_t *pData = encode(REGISTER, message, len);
+    uint8_t *pData = encode(REGISTER_REQ, message, len);
     /*
     ID
     name
