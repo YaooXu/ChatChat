@@ -125,7 +125,7 @@ private:
 
 void myProtoMsgPrint(MyProtoMsg &msg);
 
-uint8_t *encode(uint16_t server_id, Json::Value root);
+uint8_t *encode(uint16_t server_id, Json::Value root, uint32_t &len);
 
 // 请求好友列表返回的结构体
 class User_in_list {
@@ -134,6 +134,7 @@ public:
     char *description;
     int photo_id;
     int group_id;
+    int online;
 };
 
 // 请求最近联系人列表返回的结构体
@@ -165,5 +166,87 @@ public:
     int user_fd;
     char ipaddr[32];
 };
+
+MyProtoMsg *decode2Msg(const char *buf, int len) {
+    // 把字符串解析为协议结构体
+    // 返回一个协议结构体指针
+    MyProtoDeCode myDecode;
+    myDecode.clear();
+    myDecode.init();
+
+    uint8_t *pData = (uint8_t *)buf;
+    if (!myDecode.parser(pData, len)) {
+        printf("parser falied!\n");
+    } else {
+        printf("parser successfully!, len = %d\n", len);
+    }
+
+    MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
+    return pMsg;
+}
+/*
+发送结构体数组的Json格式:
+{
+    "length": int,
+    "list":[
+        {
+            "name": char *,
+            "ID": char *,
+            XXXXXX
+        },
+        {
+            "name": char *,
+            "ID": char *,
+            XXXXXX
+        }
+    ]
+}
+*/
+User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
+    // 客户端直接从字符串解包出User_in_list结构体数组
+    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // 结构体数组长度
+    length = pMsg->body["length"].asInt();
+    User_in_list *pUsers_in_list = new User_in_list[length];
+
+    for (int i = 0; i < length; i++) {
+        // 需要强制转化一下,不然不能从const char * -> char *
+        pUsers_in_list[i].name =
+            (char *)pMsg->body["list"][i]["name"].asCString();
+        pUsers_in_list[i].description =
+            (char *)pMsg->body["list"][i]["description"].asCString();
+        pUsers_in_list[i].group_id = pMsg->body["list"][i]["group_id"].asInt();
+        pUsers_in_list[i].photo_id = pMsg->body["list"][i]["photo_id"].asInt();
+        pUsers_in_list[i].online = pMsg->body["list"][i]["online"].asInt();
+    }
+    printf("User_in_list结构体数组长度: %d\n", length);
+    return pUsers_in_list;
+}
+
+User_info *decode2User_info(const char *buf, int buf_len, int &length) {
+    // 客户端直接从字符串解包出User_in_list结构体数组
+    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // 结构体数组长度
+    length = pMsg->body["length"].asInt();
+    User_info *pUser_info = new User_info[length];
+
+    for (int i = 0; i < length; i++) {
+        // 需要强制转化一下,不然不能从const char * -> char *
+        pUser_info[i].ID = (char *)pMsg->body["list"][i]["ID"].asCString();
+        pUser_info[i].photo_id = pMsg->body["list"][i]["photo_id"].asInt();
+        pUser_info[i].name = (char *)pMsg->body["list"][i]["name"].asCString();
+        pUser_info[i].sex = (char *)pMsg->body["list"][i]["sex"].asCString();
+        pUser_info[i].tel = (char *)pMsg->body["list"][i]["tel"].asCString();
+        pUser_info[i].question =
+            (char *)pMsg->body["list"][i]["question"].asCString();
+        pUser_info[i].answer =
+            (char *)pMsg->body["list"][i]["answer"].asCString();
+        pUser_info[i].description =
+            (char *)pMsg->body["list"][i]["description"].asCString();
+        pUser_info[i].group_id = pMsg->body["list"][i]["group_id"].asInt();
+    }
+    printf("User_info结构体数组长度: %d\n", length);
+    return pUser_info;
+}
 
 #endif

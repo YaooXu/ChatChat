@@ -18,6 +18,95 @@ using namespace std;
 // 服务器上用户ID到连接信息的映射
 map<int, User_connect_info *> ID2info;
 
+/* 发送好友列表*/
+void send_friend_list(const char *ID, User_connect_info *pUser_conect_info) {
+    // select * from Friend join User where Friend.Id1=User.Id and Id="123456";
+    int status, RESPTYPE = FRIEND_LIST_REP;
+    uint32_t len = 0;
+    int int_ID = atoi(ID);
+    Json::Value response;
+
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char sqlStr[1024] = {0};
+    sprintf(
+        sqlStr,
+        "select Groupint,Id,Name,Photo,Sex,Email,Description,LastLoginTime  "
+        "from Friend join User where User.Id=Friend.id2 and Friend.id1='%s'",
+        ID);
+    printf("%s\n", sqlStr);
+    if (mysql_query(mysql, sqlStr) != 0) {
+        // 查询失败,直接返回
+        printf("%s\n", mysql_error(mysql));
+        close_connection(mysql);
+
+        status = EDATABASE_WRECK;
+    } else {
+        // 查询成功
+        MYSQL_RES *result;
+        result = mysql_store_result(mysql);
+        close_connection(mysql);
+
+        if (result == NULL) {
+            // 未知错误
+            printf("%s\n", mysql_error(mysql));
+            status = EDATABASE_WRECK;
+        } else {
+            // 正真成功
+            int num_row, num_col;
+            MYSQL_ROW mysql_row;
+            num_row = mysql_num_rows(result);
+            num_col = mysql_num_fields(result);
+
+            // 结构体数组长度
+            response["length"] = num_row;
+
+            Json::Value user;
+            printf("ID:%s 共有 %d 个好友\n", ID, num_row);
+
+            // // 在线测试
+            // map<int, int> ID2info;
+            // ID2info[123672] = 1;
+
+            for (int i = 0; i < num_row; i++) {
+                mysql_row = mysql_fetch_row(result);
+
+                for (int j = 0; j < num_col; j++) {
+                    printf("[Row %d,Col %d]==>[%s], is NULL:%d\n", i, j,
+                           mysql_row[j], mysql_row[j] == NULL);
+                }
+
+                user["name"] = mysql_row[2];
+                // 当指针为NULL的时候直接赋值会段错误!
+                user["group_id"] =
+                    mysql_row[0] == NULL ? 0 : atoi(mysql_row[0]);
+                user["photo_id"] =
+                    mysql_row[3] == NULL ? 0 : atoi(mysql_row[3]);
+                user["description"] = mysql_row[6] == NULL ? "" : mysql_row[6];
+                int online = ID2info.count(atoi(mysql_row[1]));
+                user["online"] = online;
+                response["list"].append(user);
+            }
+        }
+    }
+    response["status"] = status;
+    uint8_t *pData = encode(RESPTYPE, response, len);
+    send(pUser_conect_info->user_fd, pData, len, 0);
+
+    // // 解包测试
+    // char *buf = (char *)pData;
+    // int num = 0;
+    // User_in_list *pUser_in_list = decode2User_list(buf, len, num);
+    // for (int i = 0; i < num; i++) {
+    //     printf("%s, %s, %d, %d, %d\n", pUser_in_list[i].name,
+    //            pUser_in_list[i].description, pUser_in_list[i].photo_id,
+    //            pUser_in_list[i].group_id, pUser_in_list[i].online);
+    // }
+}
+
 void user_login(const char *ID, const char *password,
                 User_connect_info *pUser_conect_info) {
     int RESPTYPE = LOGIN_REP;
@@ -41,6 +130,7 @@ void user_login(const char *ID, const char *password,
         response["status"] = EDATABASE_WRECK;
         uint8_t *pData = encode(RESPTYPE, response, len);
         send(pUser_conect_info->user_fd, pData, len, 0);
+        return;  // 得终止
     }
 
     MYSQL_RES *result;
@@ -109,14 +199,13 @@ void user_register(const char *name, const char *password,
     int ID = getUnrepeatId();
     close_connection(mysql);
 
-
     char str[25];
     sprintf(str, "%d", ID);
     // printf("integer = %d string = %s\n", ID, string);
 
     response["status"] = status;
     response["ID"] = str;
-    
+
     uint8_t *pData = encode(RESPTYPE, response, len);
     send(pUser_conect_info->user_fd, pData, len, 0);
 }
