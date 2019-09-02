@@ -3,7 +3,6 @@
 
 void send_friend_list() {
     const char *ID = "123456";
-
     // select * from Friend join User where Friend.Id1=User.Id and Id="123456";
     int status, RESPTYPE = FRIEND_LIST_REP;
     uint32_t len = 0;
@@ -65,13 +64,18 @@ void send_friend_list() {
                        mysql_row[j], mysql_row[j] == NULL);
             }
 
+            user["ID"] = mysql_row[1];
+            user["photo_id"] = mysql_row[3] == NULL ? 0 : atoi(mysql_row[3]);
             user["name"] = mysql_row[2];
             // 当指针为NULL的时候直接赋值会段错误!
-            user["group_id"] = mysql_row[0] == NULL ? 0 : atoi(mysql_row[0]);
-            user["photo_id"] = mysql_row[3] == NULL ? 0 : atoi(mysql_row[3]);
+            user["sex_id"] = mysql_row[4] == NULL ? 0 : atoi(mysql_row[4]);
+            user["tel"] = mysql_row[8] == NULL ? "" : mysql_row[8];
             user["description"] = mysql_row[6] == NULL ? "" : mysql_row[6];
+            user["last_login_time"] = mysql_row[7] == NULL ? "" : mysql_row[7];
+            user["group_id"] = mysql_row[0] == NULL ? 0 : atoi(mysql_row[0]);
             int online = ID2info.count(atoi(mysql_row[1]));
             user["online"] = online;
+
             response["list"].append(user);
         }
 
@@ -141,7 +145,7 @@ int get_chat_content() {
     mysql_connect(mysql);
     char sqlStr[1024] = {0};
     sprintf(sqlStr,
-            "select Id1,Id2,ReadState,Time,Content from ChatContent where "
+            "select Id1,Id2,Time,Content from ChatContent where "
             "Id1='%s' and Id2='%s' or Id1='%s' and Id2='%s'",
             id1, id2, id2, id1);
     printf("%s\n", sqlStr);
@@ -223,7 +227,8 @@ int change_friend_group() {
 int insert_chat_content() {
     char id1[505] = {"123456"};
     char id2[505] = {"123672"};
-    int readstate = 0;
+    int readstate1 = 0;
+    int readstate2 = 1;
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -231,8 +236,10 @@ int insert_chat_content() {
     mysql_connect(mysql);
     char value[505] = {0};
     char content[505] = {"你好"};
-    sprintf(value, "'%s','%s','%d',NOW(),'%s'", id1, id2, readstate, content);
-    insert_data(mysql, "Id1,Id2,ReadState,Time,Content", "ChatContent", value);
+    sprintf(value, "'%s','%s','%d','%d',NOW(),'%s'", id1, id2, readstate1,
+            readstate2, content);
+    insert_data(mysql, "Id1,Id2,ReadState1,ReadState2,Time,Content",
+                "ChatContent", value);
     close_connection(mysql);
 }
 /*用户信息更新*/
@@ -260,7 +267,98 @@ int update_user_info() {
     mysql_close(mysql);
 }
 
+void get_user_information() {
+    const char *ID = "123456";
+    // select * from Friend join User where Friend.Id1=User.Id and Id="123456";
+    int status, RESPTYPE = GET_MY_INF_REP; 
+    uint32_t len = 0;
+    int int_ID = atoi(ID);
+    Json::Value response;
+
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char sqlStr[1024] = {0};
+    sprintf(sqlStr,
+            "select "
+            "Name,Photo,Sex,Email,Telephone,Question,Answer,Description,"
+            "LastLoginTime from User where Id='%s'",
+            ID);
+    printf("%s\n", sqlStr);
+    if (mysql_query(mysql, sqlStr) != 0) {
+        // 查询失败,直接返回
+        printf("%s\n", mysql_error(mysql));
+        close_connection(mysql);
+        status = EDATABASE_WRECK;
+        response["status"] = EDATABASE_WRECK;
+        uint8_t *pData = encode(RESPTYPE, response, len);
+        // send(pUser_conect_info->user_fd, pData, len, 0);
+        return;
+    }
+
+    MYSQL_RES *result;
+    result = mysql_store_result(mysql);
+    close_connection(mysql);
+
+    if (result == NULL) {
+        printf("%s\n", mysql_error(mysql));
+        status = EDATABASE_WRECK;
+    } else {
+        int num_row, num_col;
+        MYSQL_ROW mysql_row;
+        num_row = mysql_num_rows(result);
+        num_col = mysql_num_fields(result);
+
+        // 结构体数组长度
+        response["length"] = num_row;
+
+        Json::Value user;
+        printf("row: %d,col: %d\n", num_row, num_col);
+
+        // 在线测试
+        for (int i = 0; i < num_row; i++) {
+            mysql_row = mysql_fetch_row(result);
+
+            for (int j = 0; j < num_col; j++) {
+                printf("[Row %d,Col %d]==>[%s], is NULL:%d\n", i, j,
+                       mysql_row[j], mysql_row[j] == NULL);
+            }
+            user["ID"] = ID;
+            user["name"] = mysql_row[0];
+            // 当指针为NULL的时候直接赋值会段错误!
+            user["photo_id"] = mysql_row[1] == NULL ? 0 : atoi(mysql_row[1]);
+            user["sex_id"] = mysql_row[2] == NULL ? 0 : atoi(mysql_row[2]);
+            user["email"] = mysql_row[3] == NULL ? "" : mysql_row[3];
+            user["tel"] = mysql_row[4] == NULL ? "" : mysql_row[4];
+            user["question"] = mysql_row[5] == NULL ? "" : mysql_row[5];
+            user["answer"] = mysql_row[6] == NULL ? "" : mysql_row[6];
+            user["description"] = mysql_row[7] == NULL ? "" : mysql_row[7];
+            user["last_login_time"] = mysql_row[8] == NULL ? "" : mysql_row[8];
+            response["list"].append(user);
+        }
+
+        response["status"] = status;
+        uint8_t *pData = encode(RESPTYPE, response, len);
+        // send(pUser_conect_info->user_fd, pData, len, 0);
+        // Name,Photo,Sex,Email,Telephone,Question,Answer,Description,LastLoginTime
+        // 解包测试
+        char *buf = (char *)pData;
+        int num = 0;
+        User_info *pUser_in_list = decode2User_info(buf, len, num);
+        for (int i = 0; i < num; i++) {
+            printf("%s, %d,%s, %d, %s, %s, %s, %s, %s, %s\n",
+                   pUser_in_list[i].ID, pUser_in_list[i].photo_id,
+                   pUser_in_list[i].name, pUser_in_list[i].sex_id,
+                   pUser_in_list[i].tel, pUser_in_list[i].question,
+                   pUser_in_list[i].answer, pUser_in_list[i].description,
+                   pUser_in_list[i].last_login_time);
+        }
+    }
+}
+
 int main() {
-    send_friend_list();
+    get_user_information();
     return 0;
 }

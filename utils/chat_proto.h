@@ -129,9 +129,13 @@ uint8_t *encode(uint16_t server_id, Json::Value root, uint32_t &len);
 // 请求好友列表返回的结构体
 class User_in_list {
 public:
-    char *name;
-    char *description;
+    char *ID;
     int photo_id;
+    char *name;
+    int sex_id;
+    char *tel;
+    char *description;
+    char *last_login_time;
     int group_id;
     int online;
 };
@@ -144,18 +148,18 @@ public:
     char *last_message;
 };
 
-// 查询好友时返回的结构体
+// 查询自身时返回的结构体
 class User_info {
 public:
     char *ID;
     int photo_id;
     char *name;
-    char *sex;
+    int sex_id;
     char *tel;
     char *question;
     char *answer;
     char *description;
-    int group_id;
+    char *last_login_time;
 };
 
 // 用户连接信息
