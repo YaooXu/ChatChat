@@ -11,13 +11,15 @@ class Chatroom : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Chatroom(QWidget *parent = nullptr);
+    explicit Chatroom(QTcpSocket *p_sock, QString uID1, QString uID2, QWidget *parent = nullptr);
 //    Chatroom(Main_Weight *w, QWidget *parent = nullptr);
 //    Chatroom(const QIcon icon, int ID, QString name, Main_Weight *w, QWidget *parent = nullpr);
 
     ~Chatroom();
     void add_msg(QString delivername, QString msg);
-
+    QTcpSocket *p_chat_socket;
+    QString uID1;
+    QString uID2;
     QPushButton *pushButton;
 
 signals:
@@ -34,6 +36,7 @@ public slots:
     void on_toolButton_clicked();
 //    Main_Weight *main_w;
 
+
 private:
     void init_widget();
 
@@ -48,8 +51,6 @@ private:
 
     QLineEdit *lineEdit;
 
-    int userID;
-    QString username;
     QColor color;
 
 };

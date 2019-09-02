@@ -8,7 +8,7 @@
 
 #include "chatchat.h"
 #include "main_weight.h"
-
+#include "reg.h"
 
 
 namespace Ui {
@@ -25,7 +25,7 @@ public:
 
     bool islogin;
     void init_Login();
-    int userid;
+    QString userid;
     QString passwd;
     QString username;
     QString usericon;
@@ -37,6 +37,7 @@ private slots:
     void logoutBtnOnclick();
     void handconnect();
     void handData();
+    void change_reg();
 
 private:
     Ui::Login *ui;
@@ -47,6 +48,10 @@ private:
     QLineEdit *lineEditPasswd;
     QPushButton *loginBtn;
     QPushButton *logoutBtn;
+    QPushButton *regBtn;
+    QPushButton *forget;
+
+
 };
 
 //#endif // LOGIN_H

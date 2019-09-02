@@ -22,18 +22,21 @@ class Main_Weight : public QWidget
 
 public:
     explicit Main_Weight(QWidget *parent = nullptr);
-    void init_main_Weight();
     ~Main_Weight();
 
-
-    int userid;
-    QString passwd;
+    QString userid;
     QString username;
     QString usericon;
-
     QTcpSocket *p_socket;
+    QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
+    QMap<QString, QTcpSocket*> Map_Socket;//ID对应用户的socket指针
+    User_info *My_info;
 
-//    Chatroom *p_Chatroom_List[1024];
+    void init_main_Weight();
+    void set_Message_List();
+    void set_Friend_List();
+
+
 
 
 private:
@@ -44,8 +47,8 @@ private:
     QPushButton *p_Message_Button;//消息按钮
     QPushButton *p_Friend_Button;//好友按钮
     QPushButton *p_Group_Button;//群组按钮
-    QListWidget *p_Message_List;//最近消息列表
-    FriList *p_Friend_List;//用户好友列表
+    QListWidget *p_Message_List = nullptr;//最近消息列表
+    FriList *p_Friend_List= nullptr;//用户好友列表
     QToolButton *p_Message_Item[1024];
     QPushButton *p_Setting;//设置按钮
     QPushButton *p_Add_Friend;//添加好友按钮
@@ -57,15 +60,16 @@ private:
 
 
 public slots:
-    //bool eventFilter(QObject *watched, QEvent *event);
-    void create_Chatroom();
+    void create_Chatroom(QString uID);
     void hand_message();
-
+    void create_Chatroom_whz();
 
 private slots:
     void on_clicked_Friend_Button();
     void on_clicked_Message_Button();
 
 };
+
+
 
 //#endif // MAIN_WEIGHT_H

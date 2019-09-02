@@ -19,7 +19,7 @@ class FriList : public QToolBox
 {
     Q_OBJECT
 public:
-    FriList(QWidget *parent=0,Qt::WindowFlags f=0);
+    FriList(QTcpSocket *p_sock, QString uID, QWidget *parent=0,Qt::WindowFlags f=0);
 
     void setLay_friend();   //好友页布局
     void setLay_family();
@@ -31,6 +31,12 @@ public:
     void add_colleague(QString id,QString user,QString icon); //添加同事
     void add_classmate(QString id,QString user,QString icon); //添加同学
     void add_blacklist(QString id,QString name,QString iconc);   //添加黑名单
+    void clear_list();
+    bool is_empty();
+
+    QString userid;
+    QTcpSocket *p_Friend_sock = nullptr;
+
 
 private:
     QToolButton *toolBtn1;
@@ -60,7 +66,7 @@ private:
 
 public slots:
     //bool eventFilter(QObject *watched, QEvent *event);
-    void create_Chatroom();
+    void create_Chatroom(QString uID);
 
 };
 

@@ -11,6 +11,7 @@ Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     init_Login();
     connect(loginBtn,SIGNAL(clicked()), this, SLOT(loginBtnOnclick()));
     connect(logoutBtn,SIGNAL(clicked()), this, SLOT(logoutBtnOnclick()));
+    connect(regBtn,SIGNAL(clicked()), this, SLOT(change_reg()));
 //    connect*()
 
     p_login_socket->connectToHost("127.0.0.1", 8888);
@@ -38,6 +39,10 @@ void Login::init_Login()
     loginBtn->setText(tr("登录"));
     logoutBtn = new QPushButton;
     logoutBtn->setText(tr("取消"));
+    regBtn=new QPushButton;
+    regBtn->setText(tr("注册"));
+    forget=new QPushButton;
+    forget->setText(tr("忘记密码"));
 
 
     QGridLayout *layout1 = new QGridLayout(this);
@@ -50,6 +55,9 @@ void Login::init_Login()
 
     layout1->addWidget(loginBtn, 2, 0);
     layout1->addWidget(logoutBtn, 2, 1);
+
+    layout1->addWidget(regBtn,3,0);
+    layout1->addWidget(forget,3,1);
 
     layout1->setColumnStretch(0, 1);
     layout1->setColumnStretch(1, 1);
@@ -97,12 +105,12 @@ void Login::loginBtnOnclick()
 
             qDebug() << "进入点击事件";
 
-            QString uName = lineEditUserID->text();
-
+            QString uID = lineEditUserID->text();
+            userid = uID;
             // 编码
             uint32_t len = 0;
             Json::Value message;
-            message["ID"] = uName.toStdString().c_str();
+            message["ID"] = uID.toStdString().c_str();
             message["password"] = passwd.toStdString().c_str();
             uint8_t *pData = encode(LOGIN_REQ, message, len);
 
@@ -170,4 +178,11 @@ void Login::handData()
     }
 
     return;
+}
+
+void Login::change_reg(){
+    reg * u= new reg(p_login_socket);
+    u->show();
+    return;
+
 }

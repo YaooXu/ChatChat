@@ -27,8 +27,9 @@
 #include <QDateTime>
 #include <QColorDialog>
 #include <QObject>
+#include <QMap>
 
-#include "chat_proto.h" // 暂时这样添加,直接把我整个源文件包含进来,但是可能会有重复定义
+#include "../utils/chat_proto.h" // 暂时这样添加,直接把我整个源文件包含进来,但是可能会有重复定义
 
 namespace Ui {
 class Chatchat;
@@ -53,5 +54,21 @@ private:
     QPushButton *group_Button;
     QPushButton *setting_Button;
 };
+
+class User_whz {
+public:
+    char *ID;
+    int photo_id;
+    char *name;
+    char *sex;
+    char *tel;
+    char *question;
+    char *answer;
+    char *description;
+    int group_id;
+    QTcpSocket *Item_socket;
+};
+
+
 
 //#endif // CHATCHAT_H

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <iostream>
 #include <queue>
 #include <vector>
@@ -53,7 +54,11 @@
 #define EPASSWORD_WRONG 1
 #define EUSER_NOTEXSIT 2
 #define EDATABASE_WRECK 3
+#define EOPPOSITE_SIDE_OFFLINE 4
 // #define
+
+// 得到当前时间
+const char *get_time();
 
 const uint8_t MY_PROTO_MAGIC = 88;                    //
 const uint32_t MY_PROTO_MAX_SIZE = 10 * 1024 * 1024;  // 10M
@@ -129,9 +134,13 @@ uint8_t *encode(uint16_t server_id, Json::Value root, uint32_t &len);
 // 请求好友列表返回的结构体
 class User_in_list {
 public:
-    char *name;
-    char *description;
+    char *ID;
     int photo_id;
+    char *name;
+    int sex_id;
+    char *tel;
+    char *description;
+    char *last_login_time;
     int group_id;
     int online;
 };
@@ -139,23 +148,23 @@ public:
 // 请求最近联系人列表返回的结构体
 class User_in_recent {
 public:
-    char *name;
-    int photo_id;
+    char *ID;
     char *last_message;
+    char *time;
 };
 
-// 查询好友时返回的结构体
+// 查询自身时返回的结构体
 class User_info {
 public:
     char *ID;
     int photo_id;
     char *name;
-    char *sex;
+    int sex_id;
     char *tel;
     char *question;
     char *answer;
     char *description;
-    int group_id;
+    char *last_login_time;
 };
 
 // 用户连接信息
@@ -166,8 +175,21 @@ public:
     char ipaddr[32];
 };
 
+// 发送的消息
+class Message {
+public:
+    char *ID1;
+    char *ID2;
+    char *content;
+    char *time;
+};
+
 MyProtoMsg *decode2Msg(const char *buf, int len);
 
 User_in_list *decode2User_list(const char *buf, int buf_len, int &length);
 
 User_info *decode2User_info(const char *buf, int buf_len, int &length);
+
+User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length);
+
+Message *decode2Message(MyProtoMsg *pMsg, int len);

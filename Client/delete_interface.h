@@ -13,7 +13,7 @@ class delete_interface : public QDialog
     Q_OBJECT
 
 public:
-    explicit delete_interface(QWidget *parent = nullptr,QString ID2=NULL);
+    explicit delete_interface(QWidget *parent = nullptr,QString ID2=nullptr);
     ~delete_interface();
 
 private slots:

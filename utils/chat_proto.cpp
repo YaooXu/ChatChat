@@ -1,8 +1,18 @@
-#pragma once
-
 #include "chat_proto.h"
 
 using namespace std;
+
+const char *get_time() {
+    time_t tt;
+    time(&tt);
+    tt = tt + 8 * 3600;  // transform the time zone
+    tm *t = gmtime(&tt);
+
+    char *res = new char[25];
+    sprintf(res, "%d-%02d-%02d %02d:%02d:%02d\n", t->tm_year + 1900, t->tm_mon + 1,
+           t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+    return res;
+}
 
 void myProtoMsgPrint(MyProtoMsg &msg) {
     string jsonStr = "";
@@ -278,11 +288,17 @@ User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
 
     for (int i = 0; i < length; i++) {
         // 需要强制转化一下,不然不能从const char * -> char *
+        pUsers_in_list[i].ID = (char *)pMsg->body["list"][i]["ID"].asCString();
+        pUsers_in_list[i].group_id = pMsg->body["list"][i]["group_id"].asInt();
         pUsers_in_list[i].name =
             (char *)pMsg->body["list"][i]["name"].asCString();
+        pUsers_in_list[i].sex_id = pMsg->body["list"][i]["sex_id"].isInt();
+        pUsers_in_list[i].tel =
+            (char *)pMsg->body["list"][i]["tel"].asCString();
         pUsers_in_list[i].description =
             (char *)pMsg->body["list"][i]["description"].asCString();
-        pUsers_in_list[i].group_id = pMsg->body["list"][i]["group_id"].asInt();
+        pUsers_in_list[i].last_login_time =
+            (char *)pMsg->body["list"][i]["last_login_time"].asCString();
         pUsers_in_list[i].photo_id = pMsg->body["list"][i]["photo_id"].asInt();
         pUsers_in_list[i].online = pMsg->body["list"][i]["online"].asInt();
     }
@@ -292,6 +308,7 @@ User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
 
 User_info *decode2User_info(const char *buf, int buf_len, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
+    // 查寻自己的信息
     MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
@@ -302,7 +319,7 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
         pUser_info[i].ID = (char *)pMsg->body["list"][i]["ID"].asCString();
         pUser_info[i].photo_id = pMsg->body["list"][i]["photo_id"].asInt();
         pUser_info[i].name = (char *)pMsg->body["list"][i]["name"].asCString();
-        pUser_info[i].sex = (char *)pMsg->body["list"][i]["sex"].asCString();
+        pUser_info[i].sex_id = pMsg->body["list"][i]["sex_id"].asInt();
         pUser_info[i].tel = (char *)pMsg->body["list"][i]["tel"].asCString();
         pUser_info[i].question =
             (char *)pMsg->body["list"][i]["question"].asCString();
@@ -310,10 +327,38 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
             (char *)pMsg->body["list"][i]["answer"].asCString();
         pUser_info[i].description =
             (char *)pMsg->body["list"][i]["description"].asCString();
-        pUser_info[i].group_id = pMsg->body["list"][i]["group_id"].asInt();
+        pUser_info[i].last_login_time =
+            (char *)pMsg->body["list"][i]["last_login_time"].asCString();
     }
     printf("User_info结构体数组长度: %d\n", length);
     return pUser_info;
+}
+
+User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length){
+    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // 结构体数组长度
+    length = pMsg->body["length"].asInt();
+    User_in_recent *pUser_recent = new User_in_recent[length];
+
+    for (int i = 0; i < length; i++) {
+        // 需要强制转化一下,不然不能从const char * -> char *
+        pUser_recent[i].ID = (char *)pMsg->body["list"][i]["ID"].asCString();
+        pUser_recent[i].last_message = (char *)pMsg->body["list"][i]["last_message"].asCString();
+        pUser_recent[i].time = (char *)pMsg->body["list"][i]["time"].asCString();
+    }
+    printf("User_info结构体数组长度: %d\n", length);
+    return pUser_recent;
+}
+
+
+Message *decode2Message(MyProtoMsg *pMsg, int len) {
+//    MyProtoMsg *pMsg = decode2Msg(buf, len);
+    Message *pMessage = new Message();
+    pMessage->ID1 = (char *)pMsg->body["ID1"].asCString();
+    pMessage->ID2 = (char *)pMsg->body["ID2"].asCString();
+    pMessage->content = (char *)pMsg->body["content"].asCString();
+    pMessage->time = (char *)pMsg->body["time"].asCString();
+    return pMessage;
 }
 
 // DEMO 实际使用的时候要注释掉main
