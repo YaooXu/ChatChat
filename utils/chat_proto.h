@@ -148,9 +148,9 @@ public:
 // 请求最近联系人列表返回的结构体
 class User_in_recent {
 public:
-    char *name;
-    int photo_id;
+    char *ID;
     char *last_message;
+    char *time;
 };
 
 // 查询自身时返回的结构体
@@ -189,5 +189,7 @@ MyProtoMsg *decode2Msg(const char *buf, int len);
 User_in_list *decode2User_list(const char *buf, int buf_len, int &length);
 
 User_info *decode2User_info(const char *buf, int buf_len, int &length);
+
+User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length);
 
 Message *decode2Message(const char *buf, int len);

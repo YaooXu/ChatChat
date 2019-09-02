@@ -334,6 +334,23 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
     return pUser_info;
 }
 
+User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length){
+    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // 结构体数组长度
+    length = pMsg->body["length"].asInt();
+    User_in_recent *pUser_recent = new User_in_recent[length];
+
+    for (int i = 0; i < length; i++) {
+        // 需要强制转化一下,不然不能从const char * -> char *
+        pUser_recent[i].ID = (char *)pMsg->body["list"][i]["ID"].asCString();
+        pUser_recent[i].last_message = (char *)pMsg->body["list"][i]["last_message"].asCString();
+        pUser_recent[i].time = (char *)pMsg->body["list"][i]["time"].asCString();
+    }
+    printf("User_info结构体数组长度: %d\n", length);
+    return pUser_recent;
+}
+
+
 Message *decode2Message(const char *buf, int len) {
     MyProtoMsg *pMsg = decode2Msg(buf, len);
     Message *pMessage = new Message();
