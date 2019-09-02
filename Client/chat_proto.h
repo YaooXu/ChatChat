@@ -166,8 +166,25 @@ public:
     char ipaddr[32];
 };
 
-MyProtoMsg *decode2Msg(const char *buf, int len);
-
-User_in_list *decode2User_list(const char *buf, int buf_len, int &length);
+MyProtoMsg *decode2Msg(const char *buf, int len) ;
+/*
+发送结构体数组的Json格式:
+{
+    "length": int,
+    "list":[
+        {
+            "name": char *,
+            "ID": char *,
+            XXXXXX
+        },
+        {
+            "name": char *,
+            "ID": char *,
+            XXXXXX
+        }
+    ]
+}
+*/
+User_in_list *decode2User_list(const char *buf, int buf_len, int &length) ;
 
 User_info *decode2User_info(const char *buf, int buf_len, int &length);

@@ -20,7 +20,7 @@ class Login : public QDialog
     Q_OBJECT
 
 public:
-    explicit Login(QWidget *parent = nullptr);
+    explicit Login(QTcpSocket *p_socket, QWidget *parent = nullptr);
     ~Login();
 
     bool islogin;
@@ -30,6 +30,8 @@ public:
     QString username;
     QString usericon;
 
+    QTcpSocket *p_login_socket;
+
 private slots:
     void loginBtnOnclick();
     void logoutBtnOnclick();
@@ -38,8 +40,6 @@ private slots:
 
 private:
     Ui::Login *ui;
-
-    QTcpSocket sock;
 
     QLabel *lable0;
     QLabel *lable1;

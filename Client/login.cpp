@@ -1,21 +1,20 @@
 #include "login.h"
 #include "ui_login.h"
 
-#include "../utils/chat_proto.cpp" // 暂时这样添加,直接把我整个源文件包含进来,但是可能会有重复定义
-
-Login::Login(QWidget *parent) :
+Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Login)
 {
     ui->setupUi(this);
     this->setWindowTitle("Login");
+    p_login_socket = p_socket;
     init_Login();
     connect(loginBtn,SIGNAL(clicked()), this, SLOT(loginBtnOnclick()));
     connect(logoutBtn,SIGNAL(clicked()), this, SLOT(logoutBtnOnclick()));
 //    connect*()
 
-    sock.connectToHost("127.0.0.1", 8888);
-    connect(&sock, SIGNAL(connected()), this, SLOT(handconnect()));
+    p_login_socket->connectToHost("127.0.0.1", 8888);
+    connect(p_login_socket, SIGNAL(connected()), this, SLOT(handconnect()));
 }
 
 Login::~Login()
@@ -108,7 +107,7 @@ void Login::loginBtnOnclick()
             uint8_t *pData = encode(LOGIN_REQ, message, len);
 
             qDebug() << "length : " << len;
-            sock.write((char *)pData, len);
+            p_login_socket->write((char *)pData, len);
 
         }
     }
@@ -123,14 +122,14 @@ void Login::handconnect()
 {
     loginBtn->setEnabled(true);
     QMessageBox::information(this, "zzz", "连接成功！");
-    connect(&sock, SIGNAL(readyRead()), this, SLOT(handData()));
+    connect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
 }
 
 void Login::handData()
 {
     // 解码需要用到长度,所以只能用sock.read
     char recvBuf[1024];
-    int len = sock.read(recvBuf, 1024);
+    int len = p_login_socket->read(recvBuf, 1024);
 
     qDebug() << len;
 
@@ -156,6 +155,12 @@ void Login::handData()
     qDebug() << pMsg->body["status"].asInt();
     if (pMsg->body["status"].asInt() == NORMAL) {
         qDebug() << "OK!";
+        //登录成功,islogin设置为true,解除readyread槽函数
+        islogin = true;
+        disconnect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
+        close();
+        return;
+
     } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
         qDebug() << "PASSWORD WRONG";
     } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {

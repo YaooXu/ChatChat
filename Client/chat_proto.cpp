@@ -251,6 +251,7 @@ MyProtoMsg *decode2Msg(const char *buf, int len) {
     MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
     return pMsg;
 }
+
 /*
 发送结构体数组的Json格式:
 {
@@ -315,7 +316,6 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
     printf("User_info结构体数组长度: %d\n", length);
     return pUser_info;
 }
-
 // DEMO 实际使用的时候要注释掉main
 // int main() {
 //     Json::Value message;

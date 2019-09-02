@@ -6,16 +6,20 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
-    Login lg;
-    lg.resize(1400, 200);
+    p_socket = new QTcpSocket();
+    Login lg(p_socket);
+    lg.resize(700, 100);
     lg.exec();
-    lg.islogin = true;
+//    lg.islogin = true;
 
     if(lg.islogin)
     {
         init_main_Weight();
-        userid = lg.userid;
-        passwd = lg.passwd;
+        connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
+        if(p_socket->isOpen())
+        {
+            qDebug() << "main:success connect!";
+        }
 
         ui->setupUi(this);
     }
@@ -195,6 +199,62 @@ void Main_Weight::create_Chatroom()
 {
         Chatroom *p_tmp = new Chatroom();
         p_tmp->setWindowTitle("Chatroom");
-        p_tmp->resize(1600, 1200);
+        p_tmp->resize(700, 600);
         p_tmp->show();
+}
+
+void Main_Weight::hand_message()
+{
+    // 解码需要用到长度,所以只能用sock.read
+    char recvBuf[1024];
+    int len = p_socket->read(recvBuf, 1024);
+
+    qDebug() <<"收到服务器消息,长度为" << len;
+
+    // 建立一个解码器对象
+    MyProtoDeCode myDecode;
+    myDecode.clear();
+    myDecode.init();
+
+    // 需要转化为uint8_t类型字符串
+    uint8_t *pData = (uint8_t *)recvBuf;
+    if (!myDecode.parser(pData, len)) {
+        printf("parser falied!\n");
+    } else {
+        printf("parser successfully!, len = %d\n", len);
+    }
+
+    // 解码的结果存在结构体的一个队列里,直接通过.front访问
+    MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
+
+    int server_id = pMsg->head.server_id;
+
+    switch (server_id) {
+    case LOGIN_REP:
+
+        break;
+    default:
+        break;
+    }
+
+
+
+
+    // status为状态码,只有NORMAL才是正常
+    qDebug() << pMsg->body["status"].asInt();
+    if (pMsg->body["status"].asInt() == NORMAL) {
+        qDebug() << "OK!";
+        //登录成功,islogin设置为true,解除readyread槽函数
+
+        return;
+
+    } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
+        qDebug() << "PASSWORD WRONG";
+    } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {
+        qDebug() << "USER NOT EXSIT";
+    } else {
+        qDebug() << "UNKOWN ERROR";
+    }
+
+    return;
 }

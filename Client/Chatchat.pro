@@ -35,7 +35,8 @@ SOURCES += \
     friendinfo_interface.cpp \
     frilist.cpp \
     regroup_interface.cpp \
-    chatroom.cpp
+    chatroom.cpp \
+    chat_proto.cpp
 
 HEADERS += \
         chatchat.h \
@@ -46,7 +47,8 @@ HEADERS += \
     friendinfo_interface.h \
     frilist.h \
     regroup_interface.h \
-    chatroom.h
+    chatroom.h \
+    chat_proto.h
 
 FORMS += \
         chatchat.ui \
