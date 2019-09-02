@@ -1,15 +1,22 @@
 #include "chatchat.h"
 #include <QApplication>
+#include "chatroom.h"
+#include "main_weight.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-//    Chatchat w;
-//    w.show();
-//    Login *p_Login = new Login();
-//    p_Login->show();
-    main_Weight m;
-    m.show();
+
+    Main_Weight *m = new Main_Weight();
+    m->userid = 123;
+    m->username = "zzz";
+    m->setWindowTitle("QQ");
+    m->show();
+//    Chatroom *p_tmp = new Chatroom();
+//    p_tmp->setWindowTitle("Chatroom");
+//    p_tmp->resize(1600, 1200);
+//    p_tmp->show();
+
 
 
     return a.exec();

@@ -2,31 +2,50 @@
 #include "ui_main_weight.h"
 
 
-main_Weight::main_Weight(QWidget *parent) :
+Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
     Login lg;
-    lg.resize(400, 200);
+    lg.resize(1400, 200);
     lg.exec();
+    lg.islogin = true;
+
     if(lg.islogin)
     {
         init_main_Weight();
+        userid = lg.userid;
+        passwd = lg.passwd;
+
         ui->setupUi(this);
     }
     else {
         QMessageBox::warning(this, "main_Layout", "未连接到服务器！");
+        close();
     }
 
 
 }
 
-main_Weight::~main_Weight()
+Main_Weight::~Main_Weight()
 {
     delete ui;
 }
 
-void main_Weight::init_main_Weight()
+//主窗口的信号过滤函数，watched代表是哪个控件触发了信号，event代表触发了具体什么信号
+//bool Main_Weight::eventFilter(QObject *watched, QEvent *event)
+//{
+//    if(event->type() == QEvent::MouseButtonPress)//如果是鼠标按键信号
+//    {
+//        int i = watched->objectName().toInt();
+//        child[i]->hide();
+//         child[i]->showNormal();//将p_Message_Item下对应的child显示到屏幕
+//        qDebug() << "点击！！！" << i;
+//    }
+//    return Main_Weight::eventFilter(watched, event);//其他信号交给父类进行默认处理
+//}
+
+void Main_Weight::init_main_Weight()
 {
 
     this->setWindowTitle("QQ");
@@ -56,8 +75,10 @@ void main_Weight::init_main_Weight()
 
     p_Message_Button = new QPushButton();
     p_Message_Button->setText("消息");
+    connect(p_Message_Button, SIGNAL(clicked()), this, SLOT(on_clicked_Message_Button()));
     p_Friend_Button = new QPushButton();
     p_Friend_Button->setText("好友");
+    connect(p_Friend_Button, SIGNAL(clicked()), this, SLOT(on_clicked_Friend_Button()));
     p_Group_Button = new QPushButton();
     p_Group_Button->setText("群组");
 
@@ -66,24 +87,30 @@ void main_Weight::init_main_Weight()
     two_Layout->addWidget(p_Friend_Button);
     two_Layout->addWidget(p_Group_Button);
 
-
+    //第三部分:QStackedlayout，先初始化message，然后初始化friend
+    three_Layout = new QStackedLayout();
     p_Message_List = new QListWidget();
 
+    //Todo:这里初始化消息列表，下一步从服务器访问消息
+    qDebug() << "Message初始化";
+    on_clicked_Message_Button();
 
-    QIcon aIcon;//假设头像
-    aIcon.addFile(":/src/img/1.jpg");
 
-    for (int i=0;i<20;i++)
-    {
-        QString str = QString::asprintf("用户 %d",i);
-        p_Message_Item[i] = new QListWidgetItem;
-        p_Message_Item[i]->setSizeHint(QSize(400, 100));
-        p_Message_Item[i]->setText(str);       //设置文字标签
-        p_Message_Item[i]->setIcon(aIcon);     //设置图标
-//        p_Message_Item->setCheckState(Qt::Unchecked);      //设置为选中状态
+    three_Layout->addWidget(p_Message_List);
 
-        p_Message_List->addItem(p_Message_Item[i]);
-    }
+
+    qDebug() << "Friend初始化";
+    //Todo:这里初始化好友列表，下一步从服务器访问消息
+    p_Friend_List = new FriList();
+    p_Friend_List->add_friend("10001","kid","00");
+    p_Friend_List->add_friend("10002","赵满刚","01");
+    p_Friend_List->add_family("10003","shr2","02");
+    p_Friend_List->add_colleague("10004","shr3","03");
+    p_Friend_List->add_classmate("10005","shr4","04");
+    p_Friend_List->add_blacklist("10006","shr5","05");
+
+    three_Layout->addWidget(p_Friend_List);
+    three_Layout->setCurrentIndex(0);
 
 
     p_Setting = new QPushButton();
@@ -91,22 +118,83 @@ void main_Weight::init_main_Weight()
     p_Add_Friend = new QPushButton();
     p_Add_Friend->setText("添加好友");
 
-    QHBoxLayout *four_Layout = new QHBoxLayout();
+    four_Layout = new QHBoxLayout();
     four_Layout->addWidget(p_Setting);
     four_Layout->addWidget(p_Add_Friend);
 
-    QVBoxLayout *main_Layout = new QVBoxLayout(this);
+    main_Layout = new QVBoxLayout(this);
     main_Layout->setMargin(30);  //表示控件与窗体的左右边距
     main_Layout->setSpacing(40); //表示各个控件之间的上下间距
 
+
+
+
     main_Layout->addLayout(one_Layout);
     main_Layout->addLayout(two_Layout);
-    main_Layout->addWidget(p_Message_List);
+
+    main_Layout->addLayout(three_Layout);
     main_Layout->addLayout(four_Layout);
 
-//    main_Layout->setStretch(0, 1);
-//    main_Layout->setStretch(1, 4);
-//    main_Layout->setStretch(3, 7);
-//    main_Layout->setStretch(4, 5);
+    main_Layout->setStretch(0, 2);
+    main_Layout->setStretch(1, 1);
+    main_Layout->setStretch(3, 6);
+    main_Layout->setStretch(4, 1);
 }
 
+
+void Main_Weight::on_clicked_Message_Button()
+{
+    //Todo：从服务器获取消息列表
+
+    QIcon aIcon;//假设头像
+    aIcon.addFile(":/src/img/1.jpg");
+
+    for (int i=0;i<20;i++)
+    {
+        QWidget *tmp_three_widget = new QWidget();
+        QVBoxLayout *three_Item_Layout = new QVBoxLayout();
+        tmp_three_widget->setLayout(three_Item_Layout);
+
+        QString str = QString::asprintf("用户 %d",i);
+        p_Message_Item[i] = new QToolButton();
+//        p_Message_Item[i]->setSizeHint(QSize(400, 100));
+        p_Message_Item[i]->setObjectName(QString(i));
+        p_Message_Item[i]->setText(str);       //设置文字标签
+        p_Message_Item[i]->setIcon(aIcon);     //设置图标
+//        p_Message_Item[i]->installEventFilter(this);//p_Message_Item的点击事件由main_weight来处理
+        p_Message_Item[i]->setIconSize(QSize(100, 100));//设置p_Message_Item大小和图像一致
+        p_Message_Item[i]->setAutoRaise(true);//设置p_Message_Item自动浮起界面风格
+        p_Message_Item[i]->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);//设置p_Message_Item文字在图像旁边
+        p_Message_Item[i]->setToolTip(tr("未知"));//设置p_Message_Item 鼠标提示为“未知”
+
+        connect(p_Message_Item[i], SIGNAL(clicked()), this, SLOT(create_Chatroom()));
+
+        three_Item_Layout->addWidget(p_Message_Item[i]);
+
+//        p_Message_Item->setCheckState(Qt::Unchecked);      //设置为选中状态
+
+        QListWidgetItem *aItem = new QListWidgetItem(p_Message_List);
+        aItem->setSizeHint(QSize(400, 100));
+        p_Message_List->addItem(aItem);
+        p_Message_List->setItemWidget(aItem, tmp_three_widget);
+
+    }
+
+    three_Layout->setCurrentIndex(0);
+
+}
+
+void Main_Weight::on_clicked_Friend_Button()
+{
+    //Tode://Todo:从服务器访问好友列表
+    three_Layout->setCurrentIndex(1);
+
+}
+
+void Main_Weight::create_Chatroom()
+{
+        Chatroom *p_tmp = new Chatroom();
+        p_tmp->setWindowTitle("Chatroom");
+        p_tmp->resize(1600, 1200);
+        p_tmp->show();
+}

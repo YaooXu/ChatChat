@@ -30,18 +30,32 @@ SOURCES += \
         chatchat.cpp \
     login.cpp \
     main_weight.cpp \
-    group_list.cpp
+    group_list.cpp \
+    delete_interface.cpp \
+    friendinfo_interface.cpp \
+    frilist.cpp \
+    regroup_interface.cpp \
+    chatroom.cpp
 
 HEADERS += \
         chatchat.h \
     login.h \
     main_weight.h \
-    group_list.h
+    group_list.h \
+    delete_interface.h \
+    friendinfo_interface.h \
+    frilist.h \
+    regroup_interface.h \
+    chatroom.h
 
 FORMS += \
         chatchat.ui \
     login.ui \
-    main_weight.ui
+    main_weight.ui \
+    delete_interface.ui \
+    friendinfo_interface.ui \
+    frilist.ui \
+    regroup_interface.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -1,5 +1,6 @@
-#ifndef CHATCHAT_H
-#define CHATCHAT_H
+//#ifndef CHATCHAT_H
+#pragma once
+//#define CHATCHAT_H
 
 #include <QMainWindow>
 #include <QDebug>
@@ -23,9 +24,11 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QTextBrowser>
-
-
-#include"login.h"
+#include <QFontComboBox>
+#include <QComboBox>
+#include <QDateTime>
+#include <QColorDialog>
+#include <QObject>
 
 namespace Ui {
 class Chatchat;
@@ -51,4 +54,4 @@ private:
     QPushButton *setting_Button;
 };
 
-#endif // CHATCHAT_H
+//#endif // CHATCHAT_H

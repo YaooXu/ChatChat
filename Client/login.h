@@ -1,5 +1,6 @@
-#ifndef LOGIN_H
-#define LOGIN_H
+//#ifndef LOGIN_H
+#pragma once
+//#define LOGIN_H
 
 #include <QDialog>
 #include <QDebug>
@@ -26,6 +27,8 @@ public:
     void init_Login();
     int userid;
     QString passwd;
+    QString username;
+    QString usericon;
 
 private slots:
     void loginBtnOnclick();
@@ -46,4 +49,4 @@ private:
     QPushButton *logoutBtn;
 };
 
-#endif // LOGIN_H
+//#endif // LOGIN_H

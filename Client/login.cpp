@@ -10,6 +10,7 @@ Login::Login(QWidget *parent) :
     init_Login();
     connect(loginBtn,SIGNAL(clicked()), this, SLOT(loginBtnOnclick()));
     connect(logoutBtn,SIGNAL(clicked()), this, SLOT(logoutBtnOnclick()));
+//    connect*()
 
     sock.connectToHost("192.168.157.129", 8888);
     connect(&sock, SIGNAL(connected()), this, SLOT(handconnect()));
@@ -83,7 +84,7 @@ void Login::loginBtnOnclick()
     else
     {
         bool ok = true;
-//        userid = lineEditUserID->text().toInt(&ok);
+        userid = lineEditUserID->text().toInt(&ok);
 
         if (!ok)//如果lineEditUserID控件内容不是数字，提示用户错误
         {
@@ -136,6 +137,7 @@ void Login::handData()
     {
         QMessageBox::information(this, "提示", "Login success!");
         islogin = true;
+
         qDebug() << "islogin" << islogin;
         close();
         return;
