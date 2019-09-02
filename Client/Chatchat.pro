@@ -36,7 +36,8 @@ SOURCES += \
     frilist.cpp \
     regroup_interface.cpp \
     chatroom.cpp \
-    chat_proto.cpp
+    chat_proto.cpp \
+    reg.cpp
 
 HEADERS += \
         chatchat.h \
@@ -48,7 +49,8 @@ HEADERS += \
     frilist.h \
     regroup_interface.h \
     chatroom.h \
-    chat_proto.h
+    chat_proto.h \
+    reg.h
 
 FORMS += \
         chatchat.ui \
@@ -57,7 +59,8 @@ FORMS += \
     delete_interface.ui \
     friendinfo_interface.ui \
     frilist.ui \
-    regroup_interface.ui
+    regroup_interface.ui \
+    reg.ui
 
 
 # Default rules for deployment.
