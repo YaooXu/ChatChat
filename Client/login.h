@@ -27,6 +27,8 @@ public:
     void init_Login();
     int userid;
     QString passwd;
+    QString username;
+    QString usericon;
 
 private slots:
     void loginBtnOnclick();
@@ -47,3 +49,4 @@ private:
     QPushButton *logoutBtn;
 };
 
+//#endif // LOGIN_H

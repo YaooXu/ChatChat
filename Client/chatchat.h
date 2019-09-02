@@ -22,8 +22,11 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QTextBrowser>
-
-#include"login.h"
+#include <QFontComboBox>
+#include <QComboBox>
+#include <QDateTime>
+#include <QColorDialog>
+#include <QObject>
 
 namespace Ui {
 class Chatchat;
@@ -48,3 +51,5 @@ private:
     QPushButton *group_Button;
     QPushButton *setting_Button;
 };
+
+//#endif // CHATCHAT_H

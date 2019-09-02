@@ -1,5 +1,6 @@
-#ifndef GROUP_LIST_H
-#define GROUP_LIST_H
+//#ifndef GROUP_LIST_H
+#pragma once
+//#define GROUP_LIST_H
 
 #include <QObject>
 #include <QWidget>
@@ -12,4 +13,4 @@ public:
     group_list();
 };
 
-#endif // GROUP_LIST_H
+//#endif // GROUP_LIST_H

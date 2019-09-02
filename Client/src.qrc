@@ -1,5 +1,14 @@
 <RCC>
     <qresource prefix="/src">
         <file>img/1.jpg</file>
+        <file>img/2.jpg</file>
+        <file>img/3jpg</file>
+        <file>img/4.jpg</file>
+        <file>img/5.jpg</file>
+        <file>img/bold.png</file>
+        <file>img/italic.png</file>
+        <file>img/under.png</file>
+        <file>img/color.png</file>
+        <file>img/Chat_Icon.png</file>
     </qresource>
 </RCC>

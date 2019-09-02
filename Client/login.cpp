@@ -12,6 +12,7 @@ Login::Login(QWidget *parent) :
     init_Login();
     connect(loginBtn,SIGNAL(clicked()), this, SLOT(loginBtnOnclick()));
     connect(logoutBtn,SIGNAL(clicked()), this, SLOT(logoutBtnOnclick()));
+//    connect*()
 
     sock.connectToHost("127.0.0.1", 8888);
     connect(&sock, SIGNAL(connected()), this, SLOT(handconnect()));
