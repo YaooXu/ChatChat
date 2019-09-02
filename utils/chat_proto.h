@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <iostream>
 #include <queue>
 #include <vector>
@@ -53,7 +54,11 @@
 #define EPASSWORD_WRONG 1
 #define EUSER_NOTEXSIT 2
 #define EDATABASE_WRECK 3
+#define EOPPOSITE_SIDE_OFFLINE 4
 // #define
+
+// 得到当前时间
+const char *get_time();
 
 const uint8_t MY_PROTO_MAGIC = 88;                    //
 const uint32_t MY_PROTO_MAX_SIZE = 10 * 1024 * 1024;  // 10M
@@ -170,8 +175,19 @@ public:
     char ipaddr[32];
 };
 
+// 发送的消息
+class Message {
+public:
+    char *ID1;
+    char *ID2;
+    char *content;
+    char *time;
+};
+
 MyProtoMsg *decode2Msg(const char *buf, int len);
 
 User_in_list *decode2User_list(const char *buf, int buf_len, int &length);
 
 User_info *decode2User_info(const char *buf, int buf_len, int &length);
+
+Message *decode2Message(const char *buf, int len);

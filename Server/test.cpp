@@ -270,7 +270,7 @@ int update_user_info() {
 void get_user_information() {
     const char *ID = "123456";
     // select * from Friend join User where Friend.Id1=User.Id and Id="123456";
-    int status, RESPTYPE = GET_MY_INF_REP; 
+    int status, RESPTYPE = GET_MY_INF_REP;  // TODO:这个状态码要改
     uint32_t len = 0;
     int int_ID = atoi(ID);
     Json::Value response;
