@@ -116,9 +116,8 @@ int delete_data(MYSQL *mysql,char table_name[],char del_name[],char del_value[])
     int t;
     const char *head = "delete from ";  
     char query[200];  
-    sprintf(query, "%s%s where %s =\"%s\"", head, table_name, del_name,del_value);
+    sprintf(query, "%s%s where (%s) =(%s)", head, table_name, del_name,del_value);
     printf("%s\n", query);
-
     t = mysql_real_query(mysql, query, strlen(query));
     if (t) {  
         printf("Failed to query: %s\n", mysql_error(mysql));  
@@ -139,8 +138,8 @@ int update_data(MYSQL *mysql ,char table_name[],char new_field_and_value[],char 
 {  
     int t;
     const char *head = "update ";
-    char query[100];
-    sprintf(query, "%s%s set %s where %s='%s'", head, table_name, new_field_and_value,find_field, find_value);
+    char query[600];
+    sprintf(query, "%s%s set %s where(%s)=(%s)", head, table_name, new_field_and_value,find_field, find_value);
     printf("%s\n", query);
 
     t = mysql_real_query(mysql, query, strlen(query));

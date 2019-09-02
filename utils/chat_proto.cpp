@@ -1,3 +1,5 @@
+#pragma once
+
 #include "chat_proto.h"
 
 using namespace std;

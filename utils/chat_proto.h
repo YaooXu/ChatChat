@@ -1,3 +1,6 @@
+#ifndef _CHAT_PROTO_H
+#define _CHAT_PROTO_H
+
 #include <arpa/inet.h>
 #include <jsoncpp/json/json.h>
 #include <stdint.h>
@@ -6,9 +9,6 @@
 #include <iostream>
 #include <queue>
 #include <vector>
-
-#ifndef _CHAT_PROTO_H
-#define _CHAT_PROTO_H
 
 // 发给服务器的server_id
 #define REGISTER_REQ 1000
@@ -129,6 +129,7 @@ uint8_t *encode(uint16_t server_id, Json::Value root);
 
 // 请求好友列表返回的结构体
 class User_in_list {
+public:
     char *name;
     char *description;
     int photo_id;
@@ -137,6 +138,7 @@ class User_in_list {
 
 // 请求最近联系人列表返回的结构体
 class User_in_recent {
+public:
     char *name;
     int photo_id;
     char *last_message;
@@ -144,6 +146,7 @@ class User_in_recent {
 
 // 查询好友时返回的结构体
 class User_info {
+public:
     char *ID;
     int photo_id;
     char *name;
@@ -155,5 +158,12 @@ class User_info {
     int group_id;
 };
 
+// 用户连接信息
+class User_connect_info {
+public:
+    int user_id;
+    int user_fd;
+    char ipaddr[32];
+};
 
 #endif

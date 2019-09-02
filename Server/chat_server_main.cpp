@@ -2,6 +2,7 @@
 #include <mysql/mysql.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -13,18 +14,14 @@
 #include "unrepeatId.h"
 
 using namespace std;
-map<int, int> ID2info;
 
-class UserInformation {
-public:
-    int user_id;
-    int user_fd;
-    char ipaddr[32];
-};
+// 服务器上用户ID到连接信息的映射
+map<int, User_connect_info *> ID2info;
 
 void user_login(const char *ID, const char *password,
-                UserInformation *pUser_info) {
+                User_connect_info *pUser_conect_info) {
     int RESPTYPE = LOGIN_REP;
+
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
     Json::Value response;
@@ -43,7 +40,7 @@ void user_login(const char *ID, const char *password,
 
         response["status"] = EDATABASE_WRECK;
         uint8_t *pData = encode(RESPTYPE, response, len);
-        send(pUser_info->user_fd, pData, len, 0);
+        send(pUser_conect_info->user_fd, pData, len, 0);
     }
 
     MYSQL_RES *result;
@@ -73,15 +70,19 @@ void user_login(const char *ID, const char *password,
         }
     } while (0);
 
+    if (status == NORMAL) {
+        // 登录成功,建立映射
+        ID2info[atoi(ID)] = pUser_conect_info;
+    }
     response["status"] = status;
     uint8_t *pData = encode(RESPTYPE, response, len);
-    send(pUser_info->user_fd, pData, len, 0);
+    send(pUser_conect_info->user_fd, pData, len, 0);
 
     delete[] pData;
 }
 
 void user_register(const char *name, const char *password,
-                   UserInformation *pUser_info) {
+                   User_connect_info *pUser_conect_info) {
     int RESPTYPE = REGISTER_REP;
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
@@ -108,16 +109,23 @@ void user_register(const char *name, const char *password,
     int ID = getUnrepeatId();
     close_connection(mysql);
 
+
+    char str[25];
+    sprintf(str, "%d", ID);
+    // printf("integer = %d string = %s\n", ID, string);
+
     response["status"] = status;
+    response["ID"] = str;
+    
     uint8_t *pData = encode(RESPTYPE, response, len);
-    send(pUser_info->user_fd, pData, len, 0);
+    send(pUser_conect_info->user_fd, pData, len, 0);
 }
 
 void *handClient(void *arg) {
     char buf[1024] = {0};
-    struct UserInformation *pUser_info =
-        static_cast<struct UserInformation *>(arg);
-    int confd = pUser_info->user_fd;
+    struct User_connect_info *pUser_conect_info =
+        static_cast<struct User_connect_info *>(arg);
+    int confd = pUser_conect_info->user_fd;
     int len;
 
     MyProtoDeCode myDecode;
@@ -125,38 +133,42 @@ void *handClient(void *arg) {
     // 等待用户请求
     while (1) {
         if ((len = recv(confd, buf, sizeof(buf), 0)) == 0) {
-            printf("用户 %d 已退出， Ip: %s", pUser_info->user_id,
-                   pUser_info->ipaddr);
-            ID2info.erase(pUser_info->user_id);
-            delete[] pUser_info;
+            printf("用户 %d 已退出， Ip: %s\n", pUser_conect_info->user_id,
+
+                   pUser_conect_info->ipaddr);
+            ID2info.erase(pUser_conect_info->user_id);
+            delete[] pUser_conect_info;
             pthread_exit(NULL);
         } else if (len == -1) {
             // TODO: 异常解决
             continue;
         } else {
             // 解码器初始化
+            printf("Recive message from IP: %s, fd: %d, begin decode\n",
+                   pUser_conect_info->ipaddr, pUser_conect_info->user_fd);
             myDecode.clear();
             myDecode.init();
 
-            uint8_t *pData = NULL;
+            uint8_t *pData = (uint8_t *)buf;
             if (!myDecode.parser(pData, len)) {
                 printf("parser falied!\n");
             } else {
-                printf("parser successful!\n");
+                printf("parser successfully!, len = %d\n", len);
             }
 
             MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
             int server_id = pMsg->head.server_id;
+
             if (server_id == REGISTER_REQ) {
+                // 注册
                 const char *name = pMsg->body["name"].asCString();
                 const char *password = pMsg->body["password"].asCString();
-                // 注册
-                user_register(name, password, pUser_info);
+                user_register(name, password, pUser_conect_info);
             } else if (server_id == LOGIN_REQ) {
-                // 登录
+                // 登录, 已测试
                 const char *ID = pMsg->body["ID"].asCString();
                 const char *password = pMsg->body["password"].asCString();
-                user_login(ID, password, pUser_info);
+                user_login(ID, password, pUser_conect_info);
             } else if (LOGIN_REQ == RECENT_LIST_REQ) {
                 const char *ID = pMsg->body["ID"].asCString();
                 // 最近消息列表
@@ -214,7 +226,7 @@ void *handClient(void *arg) {
     }
 }
 
-int PORT = 8000;
+int PORT = 8888;
 
 int main() {
     int i = 0;
@@ -263,7 +275,7 @@ int main() {
         printf("newclient Ip=%s\t,Port=%d\n", inet_ntoa(client_addr.sin_addr),
                ntohs(client_addr.sin_port));
 
-        struct UserInformation *new_user = new UserInformation();
+        struct User_connect_info *new_user = new User_connect_info();
         // 客户端的部分信息，此时还未登录
         strcpy(new_user->ipaddr, inet_ntoa(client_addr.sin_addr));
         new_user->user_fd = confd;
