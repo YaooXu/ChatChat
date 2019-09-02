@@ -2,6 +2,18 @@
 
 using namespace std;
 
+const char *get_time() {
+    time_t tt;
+    time(&tt);
+    tt = tt + 8 * 3600;  // transform the time zone
+    tm *t = gmtime(&tt);
+
+    char *res = new char[25];
+    sprintf(res, "%d-%02d-%02d %02d:%02d:%02d\n", t->tm_year + 1900, t->tm_mon + 1,
+           t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+    return res;
+}
+
 void myProtoMsgPrint(MyProtoMsg &msg) {
     string jsonStr = "";
     Json::FastWriter fWriter;
@@ -320,6 +332,16 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
     }
     printf("User_info结构体数组长度: %d\n", length);
     return pUser_info;
+}
+
+Message *decode2Message(const char *buf, int len) {
+    MyProtoMsg *pMsg = decode2Msg(buf, len);
+    Message *pMessage = new Message();
+    pMessage->ID1 = (char *)pMsg->body["ID1"].asCString();
+    pMessage->ID2 = (char *)pMsg->body["ID2"].asCString();
+    pMessage->content = (char *)pMsg->body["content"].asCString();
+    pMessage->time = (char *)pMsg->body["time"].asCString();
+    return pMessage;
 }
 
 // DEMO 实际使用的时候要注释掉main
