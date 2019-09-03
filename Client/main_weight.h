@@ -56,7 +56,7 @@ private:
     QPushButton *p_Add_Friend;//添加好友按钮
     Login *lg;
     QVBoxLayout *main_Layout;
-
+    info *self_info;
     QStackedLayout *three_Layout;
     QHBoxLayout *four_Layout;
 
@@ -67,6 +67,7 @@ public slots:
     void create_Chatroom_whz();
     void create_addfri();
     void create_info();
+    void change_main_photo(int);
 
 private slots:
     void on_clicked_Friend_Button();

@@ -185,12 +185,12 @@ public:
     char *time;
 };
 
-MyProtoMsg *decode2Msg(const char *buf, int len);
+MyProtoMsg *decode2Msg(MyProtoMsg *pMsg, int len);
 
-User_in_list *decode2User_list(const char *buf, int buf_len, int &length);
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length);
 
-User_info *decode2User_info(const char *buf, int buf_len, int &length);
+User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length);
 
-User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length);
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length);
 
 Message *decode2Message(MyProtoMsg *pMsg, int len);

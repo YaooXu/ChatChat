@@ -68,7 +68,7 @@ void Login::init_Login()
     layout1->setSizeConstraint(QLayout::SetFixedSize);
 
     islogin = false;
-    setWindowIcon(QPixmap(":/src/img/1.jpg"));//设置窗口图标
+    setWindowIcon(QPixmap(":/src/img/1.png"));//设置窗口图标
     //  lineEditUserID->setFocus();//设置lineEditUserID控件具有输入焦点
 
     //设置窗口没有边框
@@ -79,7 +79,7 @@ void Login::init_Login()
     setAutoFillBackground(true);
     QPalette palette;
     //palette.setColor(QPalette::Background, QColor(Qt::blue));
-    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/img/1.jpg")));//设置登陆背景
+    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/img/1.png")));//设置登陆背景
     setPalette(palette);
 }
 

@@ -3,14 +3,15 @@
 #include "../utils/chat_proto.h"
 #include "jsoncpp/json/json.h"
 #include<stdio.h>
-info::info(QWidget *parent) :
+info::info(QTcpSocket *p_socket, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::info)
 {
     ui->setupUi(this);
      this->setFixedSize(400,524);
+    this->ptr_socket = p_socket;
     pt=new repository();
-    ui->photo->setIcon(QPixmap(":/new/prefix1/1.png"));
+    ui->photo->setIcon(QPixmap(":/src/img/1.png"));
     ui->photo->setIconSize(QSize(200,200));
     connect(pt,SIGNAL(sendsignal(int)),this,SLOT(change_photo(int)));
     //connect(ui->update,SIGNAL(clicked()),this,SLOT(on_pushButton_clicked()));
@@ -41,15 +42,22 @@ void info::on_submit_clicked()//读数据
     Json::Value message;
     message["name"]=p_name;
     message["answer"]=p_ans;
-    message["sex"]=p_sex;
+    int sex_id;
+    if(sex=="未知")
+       sex_id=0;
+    if(sex=="男")
+        sex_id=1;
+    if(sex=="女")
+        sex_id=2;
+    message["sex_id"]=sex_id;
     message["tel"]=p_tel;
     message["description"]=p_mood;
     message["question"]=p_question;
-
+    message["photo_id"]=photo_num;
     uint32_t len = 0;
     uint8_t *pData = encode(CHANGE_MY_INF_REQ, message, len);
+    ptr_socket->write((char*)pData,len);
 
-    //send(sockfd, pData, len, 0);
 }
 
 void info::on_photo_clicked()
@@ -72,7 +80,28 @@ void info::on_update_clicked()
 }
 void info::change_photo(int x){
     QString imagename;
-    imagename.sprintf(":/new/prefix1/%d.png",x);
+    photo_num=x;
+    imagename.sprintf(":/src/img/%d.png",x);
+    emit send_signal(photo_num);
     ui->photo->setIcon(QPixmap(imagename));
     ui->photo->setIconSize(QSize(200,200));
+}
+void info::updat_info(User_info * p){
+    ui->Id_edit->setText(p->ID);
+    ui->name_edit->setText(p->name);
+    if(p->sex_id==0)
+        ui->sex_edit->setText("未知");
+    if(p->sex_id==1)
+        ui->sex_edit->setText("男");
+    if(p->sex_id=2)
+        ui->sex_edit->setText("女");
+    ui->ans_edit->setText(p->answer);
+    ui->tel_edit->setText(p->tel);
+    ui->mood_edit->setText(p->description);
+    ui->ques_edit->setText(p->question);
+    photo_num=p->photo_id;
+    QString image_name1;
+    image_name1.sprintf(":/src/img/%d.png",photo_num);
+    ui->photo->setIcon(QPixmap(image_name1));
+
 }

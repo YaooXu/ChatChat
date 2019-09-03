@@ -6,23 +6,16 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
-    init_main_Weight();
     p_socket = new QTcpSocket();
-<<<<<<< HEAD
-    Login lg(p_socket);
-    lg.resize(700, 100);
-    lg.exec();
-    lg.islogin = true;
-=======
     lg = new Login(p_socket);
     lg->resize(700, 100);
     lg->show();
 
-//    lg.islogin = true;
->>>>>>> e3945822816d54ffc9765c856471f0e63de60b59
+    //    lg.islogin = true;
 
 
     connect(lg,SIGNAL(loginSuccess()),this,SLOT(log_in()));
+
 
 }
 
@@ -32,19 +25,18 @@ Main_Weight::~Main_Weight()
 }
 void Main_Weight::log_in(){
 
-        init_main_Weight();
-        qDebug() << "登录成功";
-        userid = lg->userid;
-//        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
-//        My_info->ID=ba.data();
-        init_main_Weight();
-        this->show();
-        connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
-        if(p_socket->isOpen())
-        {
-            Map_Socket.insert(userid, p_socket);
-            qDebug() << "main:success connect socket!";
-        }
+    qDebug() << "登录成功";
+    userid = lg->userid;
+    //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
+    //        My_info->ID=ba.data();
+    init_main_Weight();
+    this->show();
+    connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
+    if(p_socket->isOpen())
+    {
+        Map_Socket.insert(userid, p_socket);
+        qDebug() << "main:success connect socket!";
+    }
 
 
 }
@@ -55,7 +47,8 @@ void Main_Weight::init_main_Weight()
 
     p_User_icon = new QPushButton();
     p_User_icon->setFixedSize(100, 100);
-    p_User_icon->setIcon(QPixmap(":/src/img/1.jpg"));
+    //
+//    p_User_icon->setIcon(QPixmap(":/src/img/1.png"));
     p_User_icon->setFlat(false);//设置外观是否为扁平状
     p_User_icon->setIconSize(QSize(100, 100));
     connect(p_User_icon,SIGNAL(clicked()),this,SLOT(create_info()));
@@ -228,29 +221,27 @@ void Main_Weight::hand_message()
         }
         Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
     }
-
-
-        break;
-    default:
+    case GET_MY_INF_REP:{
+        self_info = new info(p_socket);
+        connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
+        int length = 0;
+        User_info *pUser_info = decode2User_info(pMsg, len, length);
+        int x=pUser_info->photo_id;
+        QString image_name;
+        image_name.sprintf(":/src/img/%d.png",x);
+        p_User_icon->setIcon(QPixmap(image_name));
+        self_info->updat_info(pUser_info);
         break;
     }
+    case CHANGE_MY_INF_REP:{
+        qDebug()<<pMsg->body["status"].asInt()<<"信息修改反馈";
+        if(pMsg->body["status"].asInt()==NORMAL){
 
-
-
-    // status为状态码,只有NORMAL才是正常
-    qDebug() << pMsg->body["status"].asInt();
-    if (pMsg->body["status"].asInt() == NORMAL) {
-        qDebug() << "OK!";
-        //登录成功,islogin设置为true,解除readyread槽函数
-
-        return;
-
-    } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
-        qDebug() << "PASSWORD WRONG";
-    } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {
-        qDebug() << "USER NOT EXSIT";
-    } else {
-        qDebug() << "UNKOWN ERROR";
+            QString msg="恭喜您已经修改成功";
+            QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
+        }
+        break;
+    }
     }
 
     return;
@@ -277,12 +268,12 @@ void Main_Weight::set_Message_List()
         QString tmp_id("111111");
         QString str = QString::asprintf("用户 %s",i);
         p_Message_Item[i] = new QToolButton();
-//        p_Message_Item[i]->setSizeHint(QSize(400, 100));
+        //        p_Message_Item[i]->setSizeHint(QSize(400, 100));
         p_Message_Item[i]->setObjectName(tmp_id);//设置好友ID2对应toolbutton的name
 
         p_Message_Item[i]->setText(tmp_id);       //设置文字标签
         p_Message_Item[i]->setIcon(aIcon);     //设置图标
-//        p_Message_Item[i]->installEventFilter(this);//p_Message_Item的点击事件由main_weight来处理
+        //        p_Message_Item[i]->installEventFilter(this);//p_Message_Item的点击事件由main_weight来处理
         p_Message_Item[i]->setIconSize(QSize(100, 100));//设置p_Message_Item大小和图像一致
         p_Message_Item[i]->setAutoRaise(true);//设置p_Message_Item自动浮起界面风格
         p_Message_Item[i]->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);//设置p_Message_Item文字在图像旁边
@@ -291,11 +282,11 @@ void Main_Weight::set_Message_List()
         //设置点击事件的槽函数
         //必须用用lambda表达式才能传递参数
         connect(p_Message_Item[i], &QToolButton::clicked, this, [=](){create_Chatroom(p_Message_Item[i]->objectName());});
-//        connect(p_Message_Item[i], SIGNAL(clicked(p_Message_Item[i]->objectName())), this, SLOT(create_Chatroom(p_Message_Item[i]->objectName())));
+        //        connect(p_Message_Item[i], SIGNAL(clicked(p_Message_Item[i]->objectName())), this, SLOT(create_Chatroom(p_Message_Item[i]->objectName())));
         qDebug() << "设置Toolbutton的name: " << p_Message_Item[i]->objectName();
         three_Item_Layout->addWidget(p_Message_Item[i]);
 
-//        p_Message_Item->setCheckState(Qt::Unchecked);      //设置为选中状态
+        //        p_Message_Item->setCheckState(Qt::Unchecked);      //设置为选中状态
 
         QListWidgetItem *aItem = new QListWidgetItem(p_Message_List);
         aItem->setSizeHint(QSize(400, 100));
@@ -347,6 +338,16 @@ void Main_Weight::create_addfri()
 
 void Main_Weight::create_info()
 {
-    info *self_info = new info(nullptr);
+
     self_info->show();
+}
+
+void Main_Weight::change_main_photo(int x){
+    QString imagename2;
+
+    imagename2.sprintf(":/src/img/%d.png",x);
+    p_User_name->setText("tzy");
+    p_User_icon->setIcon(QPixmap(imagename2));
+    qDebug()<<"changephoto to " << imagename2;
+
 }
