@@ -18,7 +18,7 @@ void myProtoMsgPrint(MyProtoMsg &msg) {
     string jsonStr = "";
     Json::FastWriter fWriter;
     jsonStr = fWriter.write(msg.body);
-    cout << msg.body["op"] << endl;
+    std::cout << msg.body["op"] << endl;
 
     printf(
         "Head[version=%d,magic=%d,server_id=%d,len=%d]\n"
@@ -361,6 +361,41 @@ Message *decode2Message(MyProtoMsg *pMsg, int len) {
     return pMessage;
 }
 
+
+static char *get_my_ip() {
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char *host = NULL;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        return NULL;
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        family = ifa->ifa_addr->sa_family;
+
+        if (!strcmp(ifa->ifa_name, "lo"))
+            continue;
+        if (family == AF_INET) {
+            if ((host = (char *)malloc(NI_MAXHOST)) == NULL)
+                return NULL;
+            s = getnameinfo(ifa->ifa_addr,
+                            (family == AF_INET) ? sizeof(struct sockaddr_in)
+                                                : sizeof(struct sockaddr_in6),
+                            host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0) {
+                return NULL;
+            }
+            freeifaddrs(ifaddr);
+            return host;
+        }
+    }
+    return NULL;
+}
 // DEMO 实际使用的时候要注释掉main
 // int main() {
 //     Json::Value message;

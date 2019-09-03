@@ -1,14 +1,29 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <ifaddrs.h>
 #include <jsoncpp/json/json.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <pthread.h>
+#include <signal.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/unistd.h>
 #include <time.h>
-#include <iostream>
+#include <unistd.h>
 #include <queue>
-#include <vector>
+#include <iostream>
 
 // 发给服务器的server_id
 #define REGISTER_REQ 1000
@@ -28,6 +43,7 @@
 #define CHANGE_MY_INF_REQ 1011
 #define MESSAGE_SEND 1012
 #define HISTORY_MESSAGE_REQ 1013
+#define FILE_TRANS_REQ 1015
 
 // 服务器给客户端的server_id
 // 分为NOTI 直接通知
@@ -48,6 +64,7 @@
 #define MESSAGE_NOTI 5013
 #define SYSTEM_NOTI 5014
 #define HISTORY_MESSAGE_REP 5014
+#define FILE_TRANS_NOTI 5015
 
 // 服务器状态码
 #define NORMAL 0
@@ -193,3 +210,5 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length);
 User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length);
 
 Message *decode2Message(MyProtoMsg *pMsg, int len);
+
+static char *get_my_ip();
