@@ -130,7 +130,7 @@ void Login::logoutBtnOnclick()
 void Login::handconnect()
 {
     //loginBtn->setEnabled(true);
-    QMessageBox::information(this, "zzz", "连接成功！");
+    QMessageBox::information(this, "提示", "连接成功！");
     connect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
 }
 
@@ -185,11 +185,12 @@ void Login::handData()
         qDebug()<<pMsg->body["status"].asInt();
         if(pMsg->body["status"].asInt()==NORMAL){
              QString ID = QString(pMsg->body["ID"].asCString());
-             QMessageBox::critical(this, "成功", ID, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+             QString msg="恭喜您已经注册成功，您的ID为："+ID;
+             QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
              qDebug()<<ID;
         }
 
-         //QMessageBox::information(this, tr("错误"), tr("用户ID必须是数字"));
+         //QMessageBox::information(this, tr("错误"), tr("用户ID必须是数字"));d
 
         break;
     }
