@@ -206,12 +206,12 @@ public:
 
 MyProtoMsg *decode2Msg(const char *buf, int len);
 
-User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length);
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int &length);
 
-User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length);
+User_info *decode2User_info(MyProtoMsg *pMsg, int &length);
 
 User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length);
 
-Message *decode2Message(MyProtoMsg *pMsg, int len);
+Message *decode2Message(MyProtoMsg *pMsg);
 
 static char *get_my_ip();

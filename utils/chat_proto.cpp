@@ -279,7 +279,7 @@ MyProtoMsg *decode2Msg(const char *buf, int len) {
     ]
 }
 */
-User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length) {
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
@@ -351,7 +351,7 @@ User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length){
 }
 
 
-Message *decode2Message(MyProtoMsg *pMsg, int len) {
+Message *decode2Message(MyProtoMsg *pMsg) {
 //    MyProtoMsg *pMsg = decode2Msg(buf, len);
     Message *pMessage = new Message();
     pMessage->ID1 = (char *)pMsg->body["ID1"].asCString();

@@ -25,12 +25,12 @@ Main_Weight::~Main_Weight()
 }
 void Main_Weight::log_in(){
 
-        init_main_Weight();
+
         qDebug() << "登录成功";
         userid = lg->userid;
 //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
 //        My_info->ID=ba.data();
-
+        init_main_Weight();
         this->show();
         connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
         if(p_socket->isOpen())
@@ -136,7 +136,7 @@ void Main_Weight::on_clicked_Message_Button()
     //Todo：给服务器发送消息
     uint32_t len = 0;
     Json::Value message;
-    message["ID1"] = userid.toStdString().c_str();
+    message["ID"] = userid.toStdString().c_str();
     uint8_t *pData = encode(RECENT_LIST_REQ, message, len);
 
     qDebug() << "向服务器请求最近消息列表, length : " << len;
@@ -147,13 +147,13 @@ void Main_Weight::on_clicked_Message_Button()
 void Main_Weight::on_clicked_Friend_Button()
 {
     //Todo:从服务器访问好友列表
-    if(p_Friend_List == nullptr)
-    {
-        set_Friend_List();
-    }
-    else {
-        three_Layout->setCurrentIndex(1);
-    }
+    uint32_t len = 0;
+    Json::Value message;
+    message["ID"] = userid.toStdString().c_str();
+    uint8_t *pData = encode(FRIEND_LIST_REQ, message, len);
+
+    qDebug() << "向服务器请求好友列表, length : " << len;
+    p_socket->write((char *)pData, len);
 
 }
 
@@ -205,7 +205,7 @@ void Main_Weight::hand_message()
 
     int server_id = pMsg->head.server_id;
 
-    qDebug() << "收到的消息头为: " << QString(server_id);
+    qDebug() << "收到的消息头为: " << server_id;
 
     switch (server_id) {
     case REGISTER_REP://处理注册成功信号
@@ -218,14 +218,22 @@ void Main_Weight::hand_message()
     {
         int num = 0;
         User_in_recent *recent_message_List = decode2User_recent(pMsg, num);//num是这个list的长度
-        qDebug() << "收到服务器最近联系列表，个数为: " << QString(num);
+        qDebug() << "收到服务器最近联系列表，个数为: " << num;
         set_Message_List(recent_message_List, num);
 
     }
         break;
+    case FRIEND_LIST_REP://处理返回的好友列表
+    {
+        int num = 0;
+        User_in_list *friend_List = decode2User_list(pMsg, num);//num是这个list的长度
+        qDebug() << "收到服务器最近联系列表，个数为: " << num;
+        set_Friend_List(friend_List, num);
+    }
+        break;
     case MESSAGE_NOTI://服务器发送消息到客户端
     {
-        Message *p_message = decode2Message(pMsg, len);
+        Message *p_message = decode2Message(pMsg);
         qDebug() << "收到服务器的消息, ID1 = " << QString(p_message->ID1) << ", ID2 = "<< QString(p_message->ID2);
         qDebug() << "content: " << QString(p_message->content);
         //注意：message是好友发给ID1的，所以userid为ID2，而好友为ID1
@@ -245,7 +253,7 @@ void Main_Weight::hand_message()
         self_info = new info(p_socket);
         connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
         int length = 0;
-        User_info *pUser_info = decode2User_info(pMsg, len, length);
+        User_info *pUser_info = decode2User_info(pMsg, length);
         int x=pUser_info->photo_id;
         QString image_name;
         image_name.sprintf(":/src/img/%d.png",x);
@@ -320,34 +328,51 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
 
 }
 
-void Main_Weight::set_Friend_List()
-{
-    //set好友列表
-    if(p_Friend_List != nullptr && !p_Friend_List->is_empty())
+void Main_Weight::set_Friend_List(User_in_list *p_list, int num)
+{   
+    //Todo:将好友列表加载
+    if(p_Friend_List != nullptr)
     {
+        qDebug() << "set_Friend_List:清空";
         three_Layout->removeWidget(p_Friend_List);
         p_Friend_List->clear_list();
+        for(int i = 0; i < num; i++)
+        {
+           QString tmp_id = QString(p_list[i].ID);
+           QString tmp_name = QString(p_list[i].name);
+           QString tmp_icon = QString::number(p_list[i].photo_id);
+           int is_online = p_list[i].online;
+           int tmp_group_id = p_list[i].group_id;
+           switch (tmp_group_id) {
+           case 1:
+               p_Friend_List->add_friend(tmp_id, tmp_name, tmp_icon);
+               break;
+           case 2:
+               p_Friend_List->add_family(tmp_id, tmp_name, tmp_icon);
+               break;
+           case 3:
+               p_Friend_List->add_colleague(tmp_id, tmp_name, tmp_icon);
+               break;
+           case 4:
+               p_Friend_List->add_classmate(tmp_id, tmp_name, tmp_icon);
+               break;
+           case 5:
+               p_Friend_List->add_blacklist(tmp_id, tmp_name, tmp_icon);
+               break;
+           default:
+               break;
+           }
 
-        //p_Friend_List->add_friend("10002","赵满刚","01");
+
+        }
+
         three_Layout->addWidget(p_Friend_List);
         three_Layout->setCurrentIndex(1);
     }
     else {
-        //Todo:预加载p_Friend_List
-        p_Friend_List = new FriList(p_socket, userid);
-        p_Friend_List->add_friend("10001","kid","1");
-        p_Friend_List->add_friend("10002","赵满刚","2");
-        p_Friend_List->add_family("10003","shr2","3");
-        p_Friend_List->add_colleague("10004","shr3","4");
-        p_Friend_List->add_classmate("10005","shr4","5");
-        p_Friend_List->add_blacklist("10006","shr5","5");
-        three_Layout->addWidget(p_Friend_List);
+        //Todo:空指针不用管
 
     }
-
-    //Todo:将好友列表加载
-
-    qDebug() << "set_Friend_List:清空";
 
 }
 
@@ -359,7 +384,6 @@ void Main_Weight::create_addfri()
 
 void Main_Weight::create_info()
 {
-
     self_info->show();
 }
 
