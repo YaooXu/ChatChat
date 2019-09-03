@@ -13,9 +13,9 @@
 // 发给服务器的server_id
 #define REGISTER_REQ 1000
 #define LOGIN_REQ 1001
-#define RECENT_LIST_REQ 1002
+#define RECENT_LIST_REQ 1002    //请求最近消息列表
 
-#define FRIEND_LIST_REQ 1003
+#define FRIEND_LIST_REQ 1003    //请求好友列表
 #define FRIEND_FIND_REQ 1004
 #define FRIEND_ADD_REQ 1014
 #define FRIEND_DELETE_REQ 1005
@@ -34,8 +34,8 @@
 // REP 对于请求的回应
 #define REGISTER_REP 5000
 #define LOGIN_REP 5001
-#define RECENT_LIST_REP 5002
-#define FRIEND_LIST_REP 5003
+#define RECENT_LIST_REP 5002    //返回最近联系人消息
+#define FRIEND_LIST_REP 5003    //返回好友列表
 #define FRIEND_FIND_REP 5004
 #define FRIEND_DELETE_REP 5005
 #define FRIEND_VERIFY_REP 5006
