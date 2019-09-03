@@ -46,7 +46,7 @@ FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlag
     connect( buttonAction3, &QAction::triggered, [=]()
     {
         qDebug()<<"查看好友资料";
-        friendinfo_interface * friendinfo_friend = new friendinfo_interface(nullptr,ID2_temp);
+        friendinfo_interface * friendinfo_friend = new friendinfo_interface(nullptr,ID2_temp,p_Friend_sock);
         friendinfo_friend->show();
     });
 }
