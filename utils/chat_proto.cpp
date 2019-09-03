@@ -334,7 +334,7 @@ User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length) {
     return pUser_info;
 }
 
-User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length){
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length){
     // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();

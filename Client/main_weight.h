@@ -36,7 +36,7 @@ public:
     User_info *My_info;
 
     void init_main_Weight();
-    void set_Message_List();
+    void set_Message_List(User_in_recent *p_list, int num);
     void set_Friend_List();
 
 

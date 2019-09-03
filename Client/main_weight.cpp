@@ -14,8 +14,6 @@ Main_Weight::Main_Weight(QWidget *parent) :
 
 //    lg.islogin = true;
 
-
-
     connect(lg,SIGNAL(loginSuccess()),this,SLOT(log_in()));
 
 
@@ -40,9 +38,8 @@ void Main_Weight::log_in(){
             Map_Socket.insert(userid, p_socket);
             qDebug() << "main:success connect socket!";
         }
-
-
 }
+
 void Main_Weight::init_main_Weight()
 {
 
@@ -102,11 +99,10 @@ void Main_Weight::init_main_Weight()
     qDebug() << "Friend初始化";
 
     //Todo:这里初始化好友列表，下一步从服务器访问消息
-    on_clicked_Friend_Button();
+//    on_clicked_Friend_Button();
 
 
     three_Layout->setCurrentIndex(0);
-
 
     p_Setting = new QPushButton();
     p_Setting->setText("设置");
@@ -138,7 +134,13 @@ void Main_Weight::init_main_Weight()
 void Main_Weight::on_clicked_Message_Button()
 {
     //Todo：给服务器发送消息
-    set_Message_List();
+    uint32_t len = 0;
+    Json::Value message;
+    message["ID1"] = userid.toStdString().c_str();
+    uint8_t *pData = encode(RECENT_LIST_REQ, message, len);
+
+    qDebug() << "向服务器请求最近消息列表, length : " << len;
+    p_socket->write((char *)pData, len);
 
 }
 
@@ -172,13 +174,10 @@ void Main_Weight::create_Chatroom(QString uID)
     }
 }
 
-
-
 void Main_Weight::create_Chatroom_whz()
 {
 
 }
-
 
 void Main_Weight::hand_message()
 {
@@ -206,6 +205,8 @@ void Main_Weight::hand_message()
 
     int server_id = pMsg->head.server_id;
 
+    qDebug() << "收到的消息头为: " << QString(server_id);
+
     switch (server_id) {
     case REGISTER_REP://处理注册成功信号
 
@@ -215,6 +216,10 @@ void Main_Weight::hand_message()
         break;
     case RECENT_LIST_REP://处理返回最近联系人列表
     {
+        int num = 0;
+        User_in_recent *recent_message_List = decode2User_recent(pMsg, num);//num是这个list的长度
+        qDebug() << "收到服务器最近联系列表，个数为: " << QString(num);
+        set_Message_List(recent_message_List, num);
 
     }
         break;
@@ -263,7 +268,7 @@ void Main_Weight::hand_message()
 }
 
 
-void Main_Weight::set_Message_List()
+void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
 {
     //先解除连接，清空list
     for(int i = 0; i < p_Message_List->count(); i++)
@@ -272,23 +277,24 @@ void Main_Weight::set_Message_List()
         delete p_Message_Item[i];
     }
     p_Message_List->clear();
+
     QIcon aIcon;//假设头像
     aIcon.addFile(":/src/img/1.jpg");
 
-    for (int i=0;i<1;i++)
+    for (int i = 0; i < num; i++)
     {
         QWidget *tmp_three_widget = new QWidget();
         QVBoxLayout *three_Item_Layout = new QVBoxLayout();
         tmp_three_widget->setLayout(three_Item_Layout);
-        QString tmp_id("100040");
-        QString str = QString::asprintf("用户 %s",i);
+        QString tmp_id(QString(p_list->ID));
+//        QString str(QString(p_list->)); //设置用户名
         p_Message_Item[i] = new QToolButton();
         //        p_Message_Item[i]->setSizeHint(QSize(400, 100));
         p_Message_Item[i]->setObjectName(tmp_id);//设置好友ID2对应toolbutton的name
-
-        p_Message_Item[i]->setText(tmp_id);       //设置文字标签
+        p_Message_Item[i]->setText(tmp_id);    //设置文字标签
+//        QString imagename;
+//        imagename.sprintf(":/src/img/%d.png", p_list->);//设置头像
         p_Message_Item[i]->setIcon(aIcon);     //设置图标
-        //        p_Message_Item[i]->installEventFilter(this);//p_Message_Item的点击事件由main_weight来处理
         p_Message_Item[i]->setIconSize(QSize(100, 100));//设置p_Message_Item大小和图像一致
         p_Message_Item[i]->setAutoRaise(true);//设置p_Message_Item自动浮起界面风格
         p_Message_Item[i]->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);//设置p_Message_Item文字在图像旁边
@@ -297,7 +303,7 @@ void Main_Weight::set_Message_List()
         //设置点击事件的槽函数
         //必须用用lambda表达式才能传递参数
         connect(p_Message_Item[i], &QToolButton::clicked, this, [=](){create_Chatroom(p_Message_Item[i]->objectName());});
-        //        connect(p_Message_Item[i], SIGNAL(clicked(p_Message_Item[i]->objectName())), this, SLOT(create_Chatroom(p_Message_Item[i]->objectName())));
+//        connect(p_Message_Item[i], SIGNAL(clicked(p_Message_Item[i]->objectName())), this, SLOT(create_Chatroom(p_Message_Item[i]->objectName())));
         qDebug() << "设置Toolbutton的name: " << p_Message_Item[i]->objectName();
         three_Item_Layout->addWidget(p_Message_Item[i]);
 
