@@ -209,10 +209,12 @@ void send_friend_list(const char *ID, User_connect_info *pUser_connect_info) {
 }
 
 void send_friend_info(const char *ID, User_connect_info *pUser_connect_info) {
-    
+
 }
 
 void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
+    printf("开始准备最近联系人列表\n");
+
     int status, RESPTYPE = RECENT_LIST_REP;
     uint32_t len = 0;
     // char ID[50] = {"123456"};
@@ -248,20 +250,24 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
         }
 
         int num_row, num_col;
-        response["length"] = num_row;
+
 
         MYSQL_ROW mysql_row;
         num_row = mysql_num_rows(result);
         num_col = mysql_num_fields(result);
+        response["length"] = num_row;
+
+        printf("最近联系人共有%d人\n", num_row);
         printf("row: %d,col: %d\n", num_row, num_col);
+        
         for (int i = 0; i < num_row; i++) {
             mysql_row = mysql_fetch_row(result);
-            for (int j = 0; j < num_col; j++) {
-                printf("[Row %d,Col %d]==>[%s]\n", i, j, mysql_row[j]);
-            }
-            user["ID"] = mysql_row[0];
-            user["last_message"] = mysql_row[1];
-            user["time"] = mysql_row[2];
+            // for (int j = 0; j < num_col; j++) {
+            //     printf("[Row %d,Col %d]==>[%s]\n", i, j, mysql_row[j]);
+            // }
+            user["ID"] = mysql_row[0] == NULL ? "xxxxxx" : mysql_row[0];
+            user["last_message"] = mysql_row[1] == NULL ? "" : mysql_row[1];
+            user["time"] = mysql_row[2] == NULL ? "" : mysql_row[2];
             response["list"].append(user);
         }
     } while (0);
@@ -343,6 +349,7 @@ void user_login(const char *ID, const char *password,
 
     if (status == NORMAL) {
         // 登录成功继续发送好友列表,个人信息列表
+        printf("发送初始信息\n");
         send_user_info(ID, pUser_connect_info);
         send_friend_list(ID, pUser_connect_info);
         send_recent_list(ID, pUser_connect_info);
@@ -692,6 +699,8 @@ void *handClient(void *arg) {
 
             MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
             int server_id = pMsg->head.server_id;
+            
+            printf("server_id = %d\n", server_id);
 
             if (server_id == REGISTER_REQ) {
                 // 注册
@@ -703,7 +712,7 @@ void *handClient(void *arg) {
                 const char *ID = pMsg->body["ID"].asCString();
                 const char *password = pMsg->body["password"].asCString();
                 user_login(ID, password, pUser_connect_info);
-            } else if (LOGIN_REQ == RECENT_LIST_REQ) {
+            } else if (server_id == RECENT_LIST_REQ) {
                 // 最近消息列表
                 const char *ID = pMsg->body["ID"].asCString();
                 send_recent_list(ID, pUser_connect_info);

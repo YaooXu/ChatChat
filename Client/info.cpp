@@ -32,6 +32,7 @@ void info::on_submit_clicked()//读数据
     tel=ui->tel_edit->text();
     mood=ui->mood_edit->text();
     question=ui->ques_edit->text();
+    ID=ui->Id_edit->text();
     //photo=imagename;
     char *p_name=(char*)name.data();
     char *p_ans=(char*)ans.data();
@@ -39,6 +40,7 @@ void info::on_submit_clicked()//读数据
     char *p_tel=(char*)tel.data();
     char *p_mood=(char*)mood.data();
     char *p_question=(char*)question.data();
+    char *p_ID=(char*)ID.data();
     Json::Value message;
     message["name"]=p_name;
     message["answer"]=p_ans;
@@ -54,6 +56,7 @@ void info::on_submit_clicked()//读数据
     message["description"]=p_mood;
     message["question"]=p_question;
     message["photo_id"]=photo_num;
+    message["ID"]=p_ID;
     uint32_t len = 0;
     uint8_t *pData = encode(CHANGE_MY_INF_REQ, message, len);
     ptr_socket->write((char*)pData,len);
