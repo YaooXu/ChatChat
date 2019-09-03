@@ -40,7 +40,8 @@ private slots:
 signals:
 
     void send_signal(int);
-
+    void send_des(QString);
+    void send_name(QString);
 private:
     Ui::info *ui;
     repository *pt;

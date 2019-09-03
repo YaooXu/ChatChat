@@ -7,6 +7,7 @@ Main_Weight::Main_Weight(QWidget *parent) :
     ui(new Ui::main_Weight)
 {
 //    init_main_Weight();
+    setWindowFlags(Qt::WindowStaysOnBottomHint);
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
@@ -58,7 +59,7 @@ void Main_Weight::init_main_Weight()
 
 
     p_User_name = new QLabel();
-    p_User_name->setText("用户名");
+    //p_User_name->setText("用户名");
     p_User_personal = new QLabel();
     p_User_personal->setText("个人介绍");
 
@@ -205,7 +206,7 @@ void Main_Weight::hand_message()
     MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
 
     int server_id = pMsg->head.server_id;
-
+    qDebug() << "server_id = " << server_id;
     switch (server_id) {
     case REGISTER_REP://处理注册成功信号
 
@@ -233,9 +234,13 @@ void Main_Weight::hand_message()
     case GET_MY_INF_REP:{
         self_info = new info(p_socket);
         connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
+        connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
+        connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
         int length = 0;
         User_info *pUser_info = decode2User_info(pMsg, len, length);
         int x=pUser_info->photo_id;
+        p_User_name->setText(pUser_info->name);
+        p_User_personal->setText(pUser_info->description);
         QString image_name;
         image_name.sprintf(":/src/img/%d.png",x);
         p_User_icon->setIcon(QPixmap(image_name));
@@ -355,8 +360,16 @@ void Main_Weight::change_main_photo(int x){
     QString imagename2;
 
     imagename2.sprintf(":/src/img/%d.png",x);
-    p_User_name->setText("tzy");
+    //p_User_name->setText("tzy");
     p_User_icon->setIcon(QPixmap(imagename2));
-    qDebug()<<"changephoto to " << imagename2;
+    //qDebug()<<"changephoto to " << imagename2;
+
+}
+void Main_Weight::change_description(QString des){
+    p_User_personal->setText(des);
+    //qDebug()<<"sad";
+}
+void Main_Weight::change_name(QString name){
+    p_User_name->setText(name);
 
 }
