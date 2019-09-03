@@ -7,7 +7,7 @@
 #include <QByteArray>
 
 #include "chatchat.h"
-#include "main_weight.h"
+//#include "main_weight.h"
 #include "reg.h"
 
 
@@ -50,8 +50,9 @@ private:
     QPushButton *logoutBtn;
     QPushButton *regBtn;
     QPushButton *forget;
-
-
+signals:
+    void log_signal(int);
+    void loginSuccess();
 };
 
 //#endif // LOGIN_H

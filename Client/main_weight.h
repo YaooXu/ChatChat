@@ -54,7 +54,7 @@ private:
     QToolButton *p_Message_Item[1024];
     QPushButton *p_Setting;//设置按钮
     QPushButton *p_Add_Friend;//添加好友按钮
-
+    Login *lg;
     QVBoxLayout *main_Layout;
 
     QStackedLayout *three_Layout;
@@ -71,6 +71,10 @@ public slots:
 private slots:
     void on_clicked_Friend_Button();
     void on_clicked_Message_Button();
+    void log_in();
+signals:
+    void log_signal(int);
+
 
 };
 

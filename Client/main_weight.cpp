@@ -6,21 +6,39 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
+    init_main_Weight();
     p_socket = new QTcpSocket();
+<<<<<<< HEAD
     Login lg(p_socket);
     lg.resize(700, 100);
     lg.exec();
     lg.islogin = true;
+=======
+    lg = new Login(p_socket);
+    lg->resize(700, 100);
+    lg->show();
 
-    if(lg.islogin)
-    {
+//    lg.islogin = true;
+>>>>>>> e3945822816d54ffc9765c856471f0e63de60b59
+
+
+    connect(lg,SIGNAL(loginSuccess()),this,SLOT(log_in()));
+
+}
+
+Main_Weight::~Main_Weight()
+{
+    delete ui;
+}
+void Main_Weight::log_in(){
+
         init_main_Weight();
         qDebug() << "登录成功";
-        userid = lg.userid;
-
+        userid = lg->userid;
 //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
 //        My_info->ID=ba.data();
-
+        init_main_Weight();
+        this->show();
         connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
         if(p_socket->isOpen())
         {
@@ -28,20 +46,8 @@ Main_Weight::Main_Weight(QWidget *parent) :
             qDebug() << "main:success connect socket!";
         }
 
-        ui->setupUi(this);
-        setWindowTitle("QQ");
-//        this->show();
-    }
-    else {
-        qDebug() << "关闭";
-    }
-}
 
-Main_Weight::~Main_Weight()
-{
-    delete ui;
 }
-
 void Main_Weight::init_main_Weight()
 {
 
