@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     Main_Weight *m = new Main_Weight();
 
     m->setWindowTitle("QQ");
-    m->show();
+    //m->show();
 //    Chatroom *p_tmp = new Chatroom();
 //    p_tmp->setWindowTitle("Chatroom");
 //    p_tmp->resize(1600, 1200);

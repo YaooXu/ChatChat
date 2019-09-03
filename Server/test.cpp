@@ -95,7 +95,6 @@ void send_friend_list() {
     }
 }
 
-
 /*最近联系人*/
 int get_recent_user() {
     int status, RESPTYPE = RECENT_LIST_REP;
@@ -108,50 +107,59 @@ int get_recent_user() {
     mysql_connect(mysql);
     char sqlStr[1024] = {0};
     sprintf(sqlStr,
-           "select tem.id,tem.Content,tem.Time FROM ((select Id1 as id,Content,Time  from ChatContent where Id2='%s') union (select Id2 as id,Content,Time  from ChatContent where Id1='%s')  order by Time desc)as tem group by tem.id",
+            "select tem.id,tem.Content,tem.Time FROM ((select Id1 as "
+            "id,Content,Time  from ChatContent where Id2='%s') union (select "
+            "Id2 as id,Content,Time  from ChatContent where Id1='%s')  order "
+            "by Time desc)as tem group by tem.id",
             ID, ID);
     printf("%s\n", sqlStr);
-    if (mysql_query(mysql, sqlStr) != 0) {
-        printf("%s\n", mysql_error(mysql));
-        close_connection(mysql);
-        return -1;
-    }
-    MYSQL_RES *result;
-    result = mysql_store_result(mysql);
-    close_connection(mysql);
-    if (result == NULL) {
-        printf("%s\n", mysql_error(mysql));
-        return -1;
-    }
     Json::Value user;
     Json::Value response;
-    int num_row, num_col;
-    MYSQL_ROW mysql_row;
-    num_row = mysql_num_rows(result);
-    num_col = mysql_num_fields(result);
-    printf("row: %d,col: %d\n", num_row, num_col);
-    for (int i = 0; i < num_row; i++) {
-        mysql_row = mysql_fetch_row(result);
-        for (int j = 0; j < num_col; j++) {
-            printf("[Row %d,Col %d]==>[%s]\n", i, j, mysql_row[j]);
+    do {
+        if (mysql_query(mysql, sqlStr) != 0) {
+            printf("%s\n", mysql_error(mysql));
+            close_connection(mysql);
+            status = EDATABASE_WRECK;
+            break;
         }
-        user["ID"]=mysql_row[0];
-        user["last_message"]=mysql_row[1];
-        user["time"]=mysql_row[2];
-        response["list"].append(user);
-    }
+        MYSQL_RES *result;
+        result = mysql_store_result(mysql);
+        close_connection(mysql);
+        if (result == NULL) {
+            printf("%s\n", mysql_error(mysql));
+            status = EDATABASE_WRECK;
+            break;
+        }
+
+        int num_row, num_col;
+        MYSQL_ROW mysql_row;
+        num_row = mysql_num_rows(result);
+        num_col = mysql_num_fields(result);
+        printf("row: %d,col: %d\n", num_row, num_col);
+        for (int i = 0; i < num_row; i++) {
+            mysql_row = mysql_fetch_row(result);
+            for (int j = 0; j < num_col; j++) {
+                printf("[Row %d,Col %d]==>[%s]\n", i, j, mysql_row[j]);
+            }
+            user["ID"] = mysql_row[0];
+            user["last_message"] = mysql_row[1];
+            user["time"] = mysql_row[2];
+            response["list"].append(user);
+        }
+    } while (0);
+
     response["status"] = status;
     uint8_t *pData = encode(RESPTYPE, response, len);
-     //send(pUser_conect_info->user_fd, pData, len, 0);
+    // send(pUser_conect_info->user_fd, pData, len, 0);
 
-        // 解包测试
-        char *buf = (char *)pData;
-        int num = 0;
-        User_in_recent *pUser_in_recent = decode2User_recent(buf, len, num);
-        for (int i = 0; i < num; i++) {
-            printf("%s, %s, %s\n", pUser_in_recent[i].ID,
-                    pUser_in_recent[i].last_message, pUser_in_recent[i].time);
-        }
+    // 解包测试
+    char *buf = (char *)pData;
+    int num = 0;
+    User_in_recent *pUser_in_recent = decode2User_recent(buf, len, num);
+    for (int i = 0; i < num; i++) {
+        printf("%s, %s, %s\n", pUser_in_recent[i].ID,
+               pUser_in_recent[i].last_message, pUser_in_recent[i].time);
+    }
 }
 
 /*获取聊天记录*/
@@ -193,6 +201,94 @@ int get_chat_content() {
         }
     }
 }
+
+/*好友申请通知*/
+int add_friend_info() {
+    int online = 1;
+    User_connect_info *friend_connect_info = new User_connect_info();
+    strcpy(friend_connect_info->ipaddr, "127.0.0.1");
+    friend_connect_info->user_id = 996190;
+    friend_connect_info->user_fd = 888;
+    const char *ID = "123456";
+    int status, RESPTYPE = FRIEND_ADD_REP;
+    uint32_t len = 0;
+    int int_ID = atoi(ID);
+    Json::Value response;
+
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char sqlStr[1024] = {0};
+    sprintf(sqlStr,
+            "select Id,Name,Photo,Sex,Email,Description,LastLoginTime "
+            "from User where Id='%s'",
+            ID);
+    printf("%s\n", sqlStr);
+    do {
+        if (mysql_query(mysql, sqlStr) != 0) {
+            // 查询失败,直接返回
+            printf("%s\n", mysql_error(mysql));
+            close_connection(mysql);
+
+            status = EDATABASE_WRECK;
+            break;
+        }
+    } while (0);
+    MYSQL_RES *result;
+    result = mysql_store_result(mysql);
+    close_connection(mysql);
+    if (result == NULL) {
+        printf("%s\n", mysql_error(mysql));
+        status = EDATABASE_WRECK;
+    } else {
+        int num_row, num_col;
+        MYSQL_ROW mysql_row;
+        num_row = mysql_num_rows(result);
+        num_col = mysql_num_fields(result);
+
+        // 结构体数组长度
+        response["length"] = num_row;
+
+        Json::Value user;
+        printf("row: %d,col: %d\n", num_row, num_col);
+
+        // 在线测试
+        for (int i = 0; i < num_row; i++) {
+            mysql_row = mysql_fetch_row(result);
+
+            for (int j = 0; j < num_col; j++) {
+                printf("[Row %d,Col %d]==>[%s], is NULL:%d\n", i, j,
+                       mysql_row[j], mysql_row[j] == NULL);
+            }
+            user["ID"] = mysql_row[0];
+            user["photo_id"] = mysql_row[2] == NULL ? 0 : atoi(mysql_row[2]);
+            user["name"] = mysql_row[1];
+            // 当指针为NULL的时候直接赋值会段错误!
+            user["sex_id"] = mysql_row[3] == NULL ? 0 : atoi(mysql_row[3]);
+            user["tel"] = mysql_row[7] == NULL ? "" : mysql_row[7];
+            user["description"] = mysql_row[5] == NULL ? "" : mysql_row[5];
+            user["last_login_time"] = mysql_row[6] == NULL ? "" : mysql_row[6];
+            user["online"] = online;
+            response["list"].append(user);
+        }
+
+        response["status"] = status;
+        uint8_t *pData = encode(RESPTYPE, response, len);
+        // send(pUser_conect_info->user_fd, pData, len, 0);
+
+        // 解包测试
+        char *buf = (char *)pData;
+        int num = 0;
+        User_in_list *pUser_in_list = decode2User_list(buf, len, num);
+        for (int i = 0; i < num; i++) {
+            printf("%s, %s, %d, %d, %d\n", pUser_in_list[i].name,
+                   pUser_in_list[i].description, pUser_in_list[i].photo_id,
+                   pUser_in_list[i].sex_id, pUser_in_list[i].online);
+        }
+    }
+}
 /*添加好友*/
 int add_friend() {
     char id1[505] = {"123456"};
@@ -209,7 +305,7 @@ int add_friend() {
     char field[50] = "Id1,Id2,Groupint";
     char table_name[50] = "Friend";
     int state = insert_data(mysql, field, table_name, value);
-    sprintf(value, "'%s','%s','%s'", id2, id1, group2);
+    // sprintf(value, "'%s','%s','%s'", id2, id1, group2);
     state += insert_data(mysql, field, table_name, value);
     close_connection(mysql);
 }
@@ -366,19 +462,18 @@ void get_user_information() {
         // 解包测试
         char *buf = (char *)pData;
         int num = 0;
-        User_info *pUser_in_list = decode2User_info(buf, len, num);
+        User_info *pUser_info = decode2User_info(buf, len, num);
         for (int i = 0; i < num; i++) {
-            printf("%s, %d,%s, %d, %s, %s, %s, %s, %s, %s\n",
-                   pUser_in_list[i].ID, pUser_in_list[i].photo_id,
-                   pUser_in_list[i].name, pUser_in_list[i].sex_id,
-                   pUser_in_list[i].tel, pUser_in_list[i].question,
-                   pUser_in_list[i].answer, pUser_in_list[i].description,
-                   pUser_in_list[i].last_login_time);
+            printf("%s, %d,%s, %d, %s, %s, %s, %s, %s, %s\n", pUser_info[i].ID,
+                   pUser_info[i].photo_id, pUser_info[i].name,
+                   pUser_info[i].sex_id, pUser_info[i].tel,
+                   pUser_info[i].question, pUser_info[i].answer,
+                   pUser_info[i].description, pUser_info[i].last_login_time);
         }
     }
 }
 
 int main() {
-    get_recent_user();
+    add_friend_info();
     return 0;
 }

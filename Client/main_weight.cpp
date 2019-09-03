@@ -6,21 +6,39 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
+    init_main_Weight();
     p_socket = new QTcpSocket();
+<<<<<<< HEAD
     Login lg(p_socket);
     lg.resize(700, 100);
     lg.exec();
-//    lg.islogin = true;
+    lg.islogin = true;
+=======
+    lg = new Login(p_socket);
+    lg->resize(700, 100);
+    lg->show();
 
-    if(lg.islogin)
-    {
+//    lg.islogin = true;
+>>>>>>> e3945822816d54ffc9765c856471f0e63de60b59
+
+
+    connect(lg,SIGNAL(loginSuccess()),this,SLOT(log_in()));
+
+}
+
+Main_Weight::~Main_Weight()
+{
+    delete ui;
+}
+void Main_Weight::log_in(){
+
         init_main_Weight();
         qDebug() << "登录成功";
-        userid = lg.userid;
-
+        userid = lg->userid;
 //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
 //        My_info->ID=ba.data();
-
+        init_main_Weight();
+        this->show();
         connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
         if(p_socket->isOpen())
         {
@@ -28,30 +46,19 @@ Main_Weight::Main_Weight(QWidget *parent) :
             qDebug() << "main:success connect socket!";
         }
 
-        ui->setupUi(this);
-        setWindowTitle("QQ");
-//        this->show();
-    }
-    else {
-        qDebug() << "关闭";
-    }
-}
 
-Main_Weight::~Main_Weight()
-{
-    delete ui;
 }
-
 void Main_Weight::init_main_Weight()
 {
 
     this->setWindowTitle("QQ");
 
     p_User_icon = new QPushButton();
-    p_User_icon->setFixedSize(200, 200);
+    p_User_icon->setFixedSize(100, 100);
     p_User_icon->setIcon(QPixmap(":/src/img/1.jpg"));
     p_User_icon->setFlat(false);//设置外观是否为扁平状
-    p_User_icon->setIconSize(QSize(200, 200));
+    p_User_icon->setIconSize(QSize(100, 100));
+    connect(p_User_icon,SIGNAL(clicked()),this,SLOT(create_info()));
 
 
     p_User_name = new QLabel();
@@ -109,6 +116,7 @@ void Main_Weight::init_main_Weight()
     p_Setting->setText("设置");
     p_Add_Friend = new QPushButton();
     p_Add_Friend->setText("添加好友");
+    connect(p_Add_Friend,SIGNAL(clicked()),this,SLOT(create_addfri()));
 
     four_Layout = new QHBoxLayout();
     four_Layout->addWidget(p_Setting);
@@ -125,10 +133,10 @@ void Main_Weight::init_main_Weight()
     main_Layout->addLayout(three_Layout);
     main_Layout->addLayout(four_Layout);
 
-    main_Layout->setStretch(0, 2);
-    main_Layout->setStretch(1, 1);
-    main_Layout->setStretch(3, 6);
-    main_Layout->setStretch(4, 1);
+    //main_Layout->setStretch(0, 2);
+    //main_Layout->setStretch(1, 1);
+    //main_Layout->setStretch(3, 6);
+    //main_Layout->setStretch(4, 1);
 }
 
 void Main_Weight::on_clicked_Message_Button()
@@ -305,20 +313,22 @@ void Main_Weight::set_Friend_List()
     //set好友列表
     if(p_Friend_List != nullptr && !p_Friend_List->is_empty())
     {
+        three_Layout->removeWidget(p_Friend_List);
         p_Friend_List->clear_list();
 
+        //p_Friend_List->add_friend("10002","赵满刚","01");
         three_Layout->addWidget(p_Friend_List);
         three_Layout->setCurrentIndex(1);
     }
     else {
         //Todo:预加载p_Friend_List
         p_Friend_List = new FriList(p_socket, userid);
-        p_Friend_List->add_friend("10001","kid","00");
-        p_Friend_List->add_friend("10002","赵满刚","01");
-        p_Friend_List->add_family("10003","shr2","02");
-        p_Friend_List->add_colleague("10004","shr3","03");
-        p_Friend_List->add_classmate("10005","shr4","04");
-        p_Friend_List->add_blacklist("10006","shr5","05");
+        p_Friend_List->add_friend("10001","kid","1");
+        p_Friend_List->add_friend("10002","赵满刚","2");
+        p_Friend_List->add_family("10003","shr2","3");
+        p_Friend_List->add_colleague("10004","shr3","4");
+        p_Friend_List->add_classmate("10005","shr4","5");
+        p_Friend_List->add_blacklist("10006","shr5","5");
         three_Layout->addWidget(p_Friend_List);
 
     }
@@ -327,4 +337,16 @@ void Main_Weight::set_Friend_List()
 
     qDebug() << "set_Friend_List:清空";
 
+}
+
+void Main_Weight::create_addfri()
+{
+    addfri_interface * addfri=new addfri_interface(nullptr,userid,p_socket);
+    addfri->show();
+}
+
+void Main_Weight::create_info()
+{
+    info *self_info = new info(nullptr);
+    self_info->show();
 }

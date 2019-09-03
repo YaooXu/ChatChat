@@ -3,6 +3,8 @@
 //#define DELETE_INTERFACE_H
 
 #include <QDialog>
+#include <QTcpSocket>
+#include "../utils/chat_proto.h"
 
 namespace Ui {
 class delete_interface;
@@ -13,7 +15,7 @@ class delete_interface : public QDialog
     Q_OBJECT
 
 public:
-    explicit delete_interface(QWidget *parent = nullptr,QString ID2=nullptr);
+    explicit delete_interface(QWidget *parent = nullptr,QString userID=nullptr,QString ID2=nullptr,QTcpSocket *p_socket=nullptr);
     ~delete_interface();
 
 private slots:
@@ -25,7 +27,9 @@ private slots:
 
 private:
     Ui::delete_interface *ui;
+    QString ID1;
     QString ID2_temp;
+    QTcpSocket *p_delfri_sock;
 };
 
 //#endif // DELETE_INTERFACE_H

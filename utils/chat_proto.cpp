@@ -279,9 +279,9 @@ MyProtoMsg *decode2Msg(const char *buf, int len) {
     ]
 }
 */
-User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
-    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
     User_in_list *pUsers_in_list = new User_in_list[length];
@@ -306,11 +306,11 @@ User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
     return pUsers_in_list;
 }
 
-User_info *decode2User_info(const char *buf, int buf_len, int &length) {
+User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // 查寻自己的信息
-    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
-    // 结构体数组长度
+    // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // 结构体数组长度, 好友的是length是好有个数,查询个人信息的时候默认为1
     length = pMsg->body["length"].asInt();
     User_info *pUser_info = new User_info[length];
 
@@ -334,8 +334,8 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
     return pUser_info;
 }
 
-User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length){
-    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length){
+    // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
     User_in_recent *pUser_recent = new User_in_recent[length];

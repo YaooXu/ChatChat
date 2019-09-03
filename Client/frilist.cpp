@@ -34,13 +34,13 @@ FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlag
     connect( buttonAction1, &QAction::triggered, [=]()
     {
         qDebug()<<"重新分组";
-        regroup_interface * regroup_friend = new regroup_interface(nullptr,ID2_temp);
+        regroup_interface * regroup_friend = new regroup_interface(nullptr,userid,ID2_temp,p_Friend_sock);
         regroup_friend->show();
     });
     connect( buttonAction2, &QAction::triggered, [=]()
     {
         qDebug()<<"删除好友";
-        delete_interface * delete_friend = new delete_interface(nullptr,ID2_temp);  //此处只是实验，ID2是好友的ID，参数还应有socket,ID1
+        delete_interface * delete_friend = new delete_interface(nullptr,userid,ID2_temp,p_Friend_sock);  //此处只是实验，ID2是好友的ID，参数还应有socket,ID1
         delete_friend->show();
     });
     connect( buttonAction3, &QAction::triggered, [=]()
@@ -100,7 +100,7 @@ void FriList::setLay_blc()
 void FriList::add_friend(QString id, QString user, QString icon)//通过此类函数实现动态好友列表，即每刷新一次，重新将所 有好友add进去
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/pic/%1.ico").arg(icon);//头像
+    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);//头像
     QString text = QString("%1").arg(user);//昵称
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -131,7 +131,7 @@ void FriList::add_friend(QString id, QString user, QString icon)//通过此类�
 void FriList::add_blacklist(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/pic/%1.ico").arg(icon);
+    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -155,7 +155,7 @@ void FriList::add_blacklist(QString id, QString name, QString icon)
 void FriList::add_family(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/pic/%1.ico").arg(icon);
+    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -179,7 +179,7 @@ void FriList::add_family(QString id, QString name, QString icon)
 void FriList::add_colleague(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/pic/%1.ico").arg(icon);
+    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -203,7 +203,7 @@ void FriList::add_colleague(QString id, QString name, QString icon)
 void FriList::add_classmate(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/pic/%1.ico").arg(icon);
+    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -236,27 +236,37 @@ void FriList::clear_list()
 {
     while(!friend_list.empty())
     {
+        disconnect(friend_list.last(),0,0,0);
         layout_fri->removeWidget(friend_list.last());
+        friend_list.last()->~QToolButton();
         friend_list.pop_back();
     }
     while(!blacklist_list.empty())
     {
+        disconnect(blacklist_list.last(),0,0,0);
         layout_fri->removeWidget(blacklist_list.last());
+        blacklist_list.last()->~QToolButton();
         blacklist_list.pop_back();
     }
     while(!family_list.empty())
     {
+        disconnect(family_list.last(),0,0,0);
         layout_family->removeWidget(family_list.last());
+        family_list.last()->~QToolButton();
         family_list.pop_back();
     }
     while(!colleague_list.empty())
     {
+        disconnect(colleague_list.last(),0,0,0);
         layout_colleague->removeWidget(colleague_list.last());
+        colleague_list.last()->~QToolButton();
         colleague_list.pop_back();
     }
     while(!classmate_list.empty())
     {
+        disconnect(classmate_list.last(),0,0,0);
         layout_classmate->removeWidget(classmate_list.last());
+        classmate_list.last()->~QToolButton();
         classmate_list.pop_back();
     }
 }
