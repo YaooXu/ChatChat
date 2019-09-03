@@ -133,6 +133,7 @@ public:
     bool empty();
     MyProtoMsg *front();
     void pop();
+    std::queue<MyProtoMsg *> mMsgQ;        //解析好的协议消息队列
 
 private:
     bool parserHead(uint8_t **curData, uint32_t &leftLen, uint32_t &parserLen,
@@ -142,7 +143,7 @@ private:
 
 private:
     MyProtoMsg mCurMsg;                    //当前解析中的协议消息体
-    std::queue<MyProtoMsg *> mMsgQ;        //解析好的协议消息队列
+
     std::vector<uint8_t> mCurReserved;     //未解析的网络字节流
     MyProtoParserStatus mCurParserStatus;  //当前解析状态
 };
