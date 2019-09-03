@@ -6,12 +6,14 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
+//    init_main_Weight();
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
     lg->show();
 
-    //    lg.islogin = true;
+//    lg.islogin = true;
+
 
 
     connect(lg,SIGNAL(loginSuccess()),this,SLOT(log_in()));
@@ -25,18 +27,19 @@ Main_Weight::~Main_Weight()
 }
 void Main_Weight::log_in(){
 
-    qDebug() << "登录成功";
-    userid = lg->userid;
-    //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
-    //        My_info->ID=ba.data();
-    init_main_Weight();
-    this->show();
-    connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
-    if(p_socket->isOpen())
-    {
-        Map_Socket.insert(userid, p_socket);
-        qDebug() << "main:success connect socket!";
-    }
+        init_main_Weight();
+        qDebug() << "登录成功";
+        userid = lg->userid;
+//        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
+//        My_info->ID=ba.data();
+
+        this->show();
+        connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
+        if(p_socket->isOpen())
+        {
+            Map_Socket.insert(userid, p_socket);
+            qDebug() << "main:success connect socket!";
+        }
 
 
 }
@@ -160,9 +163,12 @@ void Main_Weight::create_Chatroom(QString uID)
     {
         Chatroom *p_tmp = new Chatroom(p_socket, userid, uID);
         Map_Chatroom.insert(uID, p_tmp);//创建了一个聊天窗口，插入map
-        p_tmp->setWindowTitle("Chatroom");
+        p_tmp->setWindowTitle("Chatroom:" + userid + " to " + uID);
         p_tmp->resize(700, 600);
         p_tmp->show();
+    }
+    else {
+        Map_Chatroom[uID]->show();
     }
 }
 
@@ -215,9 +221,12 @@ void Main_Weight::hand_message()
         //注意：message是好友发给ID1的，所以userid为ID2，而好友为ID1
         QString tmp_ID2 = QString(p_message->ID1);
         QString tmp_content = QString(p_message->content);
-        if(Map_Chatroom[userid] == nullptr)
+        if(Map_Chatroom[tmp_ID2] == nullptr)
         {
             create_Chatroom(tmp_ID2);
+        }
+        else {
+            Map_Chatroom[tmp_ID2]->show();
         }
         Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
     }
@@ -265,7 +274,7 @@ void Main_Weight::set_Message_List()
         QWidget *tmp_three_widget = new QWidget();
         QVBoxLayout *three_Item_Layout = new QVBoxLayout();
         tmp_three_widget->setLayout(three_Item_Layout);
-        QString tmp_id("111111");
+        QString tmp_id("100040");
         QString str = QString::asprintf("用户 %s",i);
         p_Message_Item[i] = new QToolButton();
         //        p_Message_Item[i]->setSizeHint(QSize(400, 100));

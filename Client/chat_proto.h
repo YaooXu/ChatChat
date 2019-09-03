@@ -1,29 +1,13 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <ifaddrs.h>
 #include <jsoncpp/json/json.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <poll.h>
-#include <pthread.h>
-#include <signal.h>
-#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/unistd.h>
-#include <time.h>
-#include <unistd.h>
-#include <queue>
 #include <iostream>
+#include <queue>
+#include <vector>
 
 // 发给服务器的server_id
 #define REGISTER_REQ 1000
@@ -41,9 +25,8 @@
 #define GET_FRIEND_INF_REQ 1009
 #define GET_MY_INF_REQ 1010
 #define CHANGE_MY_INF_REQ 1011
-#define MESSAGE_SEND 1012
+#define MESSAGE_SEND 1012          //客户端发送消息到服务器
 #define HISTORY_MESSAGE_REQ 1013
-#define FILE_TRANS_REQ 1015
 
 // 服务器给客户端的server_id
 // 分为NOTI 直接通知
@@ -55,30 +38,22 @@
 #define FRIEND_FIND_REP 5004
 #define FRIEND_DELETE_REP 5005
 #define FRIEND_VERIFY_REP 5006
-#define FRIEND_ADD_NOTI 5007
+#define FRIEND_APPLI_NOTI 5007
 #define FRIEND_GROUP_CHANGE_REP 5008
 #define CREATE_GROUP_REP 5009
 #define GET_FRIEND_INF_REP 5010
 #define GET_MY_INF_REP 5011
 #define CHANGE_MY_INF_REP 5012
-#define MESSAGE_NOTI 5013
-#define SYSTEM_NOTI 5014
-// #define HISTORY_MESSAGE_REP 5014
-#define FILE_TRANS_NOTI 5015
-#define HISTORY_MESSAGE_REP 5016
+#define MESSAGE_NOTI 5013           //服务器发给客户端
+#define SYSTEM_NOTI 5014            
+#define HISTORY_MESSAGE_REP 5014
 
-#define FRIEND_ADD_FIRST_REP 5017 // 第一次告诉ID1申请是否发送成功
-#define FRIEND_ADD_SECOND_REP 5018 // 第二次告诉ID2对方是否接受
 // 服务器状态码
 #define NORMAL 0
 #define EPASSWORD_WRONG 1
 #define EUSER_NOTEXSIT 2
 #define EDATABASE_WRECK 3
-#define EOPPOSITE_SIDE_OFFLINE 4
 // #define
-
-// 得到当前时间
-const char *get_time();
 
 const uint8_t MY_PROTO_MAGIC = 88;                    //
 const uint32_t MY_PROTO_MAX_SIZE = 10 * 1024 * 1024;  // 10M
@@ -154,13 +129,9 @@ uint8_t *encode(uint16_t server_id, Json::Value root, uint32_t &len);
 // 请求好友列表返回的结构体
 class User_in_list {
 public:
-    char *ID;
-    int photo_id;
     char *name;
-    int sex_id;
-    char *tel;
     char *description;
-    char *last_login_time;
+    int photo_id;
     int group_id;
     int online;
 };
@@ -168,23 +139,23 @@ public:
 // 请求最近联系人列表返回的结构体
 class User_in_recent {
 public:
-    char *ID;
+    char *name;
+    int photo_id;
     char *last_message;
-    char *time;
 };
 
-// 查询自身时返回的结构体
+// 查询好友时返回的结构体
 class User_info {
 public:
     char *ID;
     int photo_id;
     char *name;
-    int sex_id;
+    char *sex;
     char *tel;
     char *question;
     char *answer;
     char *description;
-    char *last_login_time;
+    int group_id;
 };
 
 // 用户连接信息
@@ -195,23 +166,25 @@ public:
     char ipaddr[32];
 };
 
-// 发送的消息
-class Message {
-public:
-    char *ID1;
-    char *ID2;
-    char *content;
-    char *time;
-};
+MyProtoMsg *decode2Msg(const char *buf, int len) ;
+/*
+发送结构体数组的Json格式:
+{
+    "length": int,
+    "list":[
+        {
+            "name": char *,
+            "ID": char *,
+            XXXXXX
+        },
+        {
+            "name": char *,
+            "ID": char *,
+            XXXXXX
+        }
+    ]
+}
+*/
+User_in_list *decode2User_list(const char *buf, int buf_len, int &length) ;
 
-MyProtoMsg *decode2Msg(MyProtoMsg *pMsg, int len);
-
-User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length);
-
-User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length);
-
-User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length);
-
-Message *decode2Message(MyProtoMsg *pMsg, int len);
-
-static char *get_my_ip();
+User_info *decode2User_info(const char *buf, int buf_len, int &length);

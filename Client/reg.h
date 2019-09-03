@@ -7,7 +7,8 @@
 #include <QTcpSocket>
 #include <QByteArray>
 #include <QWidget>
-#include "chatchat.h"
+#include "my_include.h"
+
 namespace Ui {
 class reg;
 }

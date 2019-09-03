@@ -8,7 +8,7 @@ addfri_interface::addfri_interface(QWidget *parent,QString userID,QTcpSocket *p_
     ui->setupUi(this);
     ID1=userID;
     p_addfri_sock=p_socket;
-    p_socket->connectToHost("192.168.137.129", 8888);
+    //p_socket->connectToHost("192.168.137.129", 8888);
 }
 
 addfri_interface::~addfri_interface()

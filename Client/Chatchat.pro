@@ -27,7 +27,6 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        chatchat.cpp \
     login.cpp \
     main_weight.cpp \
     group_list.cpp \
@@ -45,7 +44,6 @@ SOURCES += \
     repository.cpp
 
 HEADERS += \
-        chatchat.h \
     login.h \
     main_weight.h \
     group_list.h \
@@ -60,7 +58,8 @@ HEADERS += \
     ../utils/chat_proto.h \
     addfri_interface.h \
     info.h \
-    repository.h
+    repository.h \
+    my_include.h
 
 FORMS += \
         chatchat.ui \
