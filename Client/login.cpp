@@ -68,7 +68,7 @@ void Login::init_Login()
 
     islogin = false;
     setWindowIcon(QPixmap(":/src/img/1.jpg"));//设置窗口图标
-    lineEditUserID->setFocus();//设置lineEditUserID控件具有输入焦点
+  //  lineEditUserID->setFocus();//设置lineEditUserID控件具有输入焦点
 
     //设置窗口没有边框
     setWindowFlags(Qt::FramelessWindowHint);

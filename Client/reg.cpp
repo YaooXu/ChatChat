@@ -63,4 +63,5 @@ void reg::submit_click(){
 
     qDebug() << "length : " << len;
     ptr_socket->write((char *)pData, len);
+    this->close();
 }
