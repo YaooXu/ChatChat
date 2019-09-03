@@ -18,7 +18,7 @@ void myProtoMsgPrint(MyProtoMsg &msg) {
     string jsonStr = "";
     Json::FastWriter fWriter;
     jsonStr = fWriter.write(msg.body);
-    cout << msg.body["op"] << endl;
+    std::cout << msg.body["op"] << endl;
 
     printf(
         "Head[version=%d,magic=%d,server_id=%d,len=%d]\n"
@@ -279,9 +279,9 @@ MyProtoMsg *decode2Msg(const char *buf, int len) {
     ]
 }
 */
-User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
-    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
     User_in_list *pUsers_in_list = new User_in_list[length];
@@ -306,10 +306,10 @@ User_in_list *decode2User_list(const char *buf, int buf_len, int &length) {
     return pUsers_in_list;
 }
 
-User_info *decode2User_info(const char *buf, int buf_len, int &length) {
+User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // 查寻自己的信息
-    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+//    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
     User_info *pUser_info = new User_info[length];
@@ -334,8 +334,8 @@ User_info *decode2User_info(const char *buf, int buf_len, int &length) {
     return pUser_info;
 }
 
-User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length){
-    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length){
+    // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
     User_in_recent *pUser_recent = new User_in_recent[length];
@@ -361,6 +361,41 @@ Message *decode2Message(MyProtoMsg *pMsg, int len) {
     return pMessage;
 }
 
+
+static char *get_my_ip() {
+    struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char *host = NULL;
+
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        return NULL;
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        family = ifa->ifa_addr->sa_family;
+
+        if (!strcmp(ifa->ifa_name, "lo"))
+            continue;
+        if (family == AF_INET) {
+            if ((host = (char *)malloc(NI_MAXHOST)) == NULL)
+                return NULL;
+            s = getnameinfo(ifa->ifa_addr,
+                            (family == AF_INET) ? sizeof(struct sockaddr_in)
+                                                : sizeof(struct sockaddr_in6),
+                            host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0) {
+                return NULL;
+            }
+            freeifaddrs(ifaddr);
+            return host;
+        }
+    }
+    return NULL;
+}
 // DEMO 实际使用的时候要注释掉main
 // int main() {
 //     Json::Value message;

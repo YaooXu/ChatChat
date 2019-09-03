@@ -1,14 +1,29 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <ifaddrs.h>
 #include <jsoncpp/json/json.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <pthread.h>
+#include <signal.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/unistd.h>
 #include <time.h>
-#include <iostream>
+#include <unistd.h>
 #include <queue>
-#include <vector>
+#include <iostream>
 
 // 发给服务器的server_id
 #define REGISTER_REQ 1000
@@ -28,6 +43,7 @@
 #define CHANGE_MY_INF_REQ 1011
 #define MESSAGE_SEND 1012
 #define HISTORY_MESSAGE_REQ 1013
+#define FILE_TRANS_REQ 1015
 
 // 服务器给客户端的server_id
 // 分为NOTI 直接通知
@@ -39,7 +55,7 @@
 #define FRIEND_FIND_REP 5004
 #define FRIEND_DELETE_REP 5005
 #define FRIEND_VERIFY_REP 5006
-#define FRIEND_APPLI_NOTI 5007
+#define FRIEND_ADD_NOTI 5007
 #define FRIEND_GROUP_CHANGE_REP 5008
 #define CREATE_GROUP_REP 5009
 #define GET_FRIEND_INF_REP 5010
@@ -47,9 +63,12 @@
 #define CHANGE_MY_INF_REP 5012
 #define MESSAGE_NOTI 5013
 #define SYSTEM_NOTI 5014
-#define HISTORY_MESSAGE_REP 5015
-#define FRIEND_ADD_REP 5016
+// #define HISTORY_MESSAGE_REP 5014
+#define FILE_TRANS_NOTI 5015
+#define HISTORY_MESSAGE_REP 5016
 
+#define FRIEND_ADD_FIRST_REP 5017 // 第一次告诉ID1申请是否发送成功
+#define FRIEND_ADD_SECOND_REP 5018 // 第二次告诉ID2对方是否接受
 // 服务器状态码
 #define NORMAL 0
 #define EPASSWORD_WRONG 1
@@ -187,10 +206,12 @@ public:
 
 MyProtoMsg *decode2Msg(const char *buf, int len);
 
-User_in_list *decode2User_list(const char *buf, int buf_len, int &length);
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length);
 
-User_info *decode2User_info(const char *buf, int buf_len, int &length);
+User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length);
 
-User_in_recent *decode2User_recent(const char *buf, int buf_len, int &length);
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length);
 
 Message *decode2Message(MyProtoMsg *pMsg, int len);
+
+static char *get_my_ip();

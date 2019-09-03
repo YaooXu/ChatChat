@@ -15,7 +15,7 @@ Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     connect(regBtn,SIGNAL(clicked()), this, SLOT(change_reg()));
     //    connect*()
 
-    p_login_socket->connectToHost("182.92.193.104", 5117);
+    p_login_socket->connectToHost("192.168.28.135", 5117);
     connect(p_login_socket, SIGNAL(connected()), this, SLOT(handconnect()));
 }
 
@@ -68,7 +68,7 @@ void Login::init_Login()
     layout1->setSizeConstraint(QLayout::SetFixedSize);
 
     islogin = false;
-    setWindowIcon(QPixmap(":/src/img/1.jpg"));//设置窗口图标
+    setWindowIcon(QPixmap(":/src/img/1.png"));//设置窗口图标
     //  lineEditUserID->setFocus();//设置lineEditUserID控件具有输入焦点
 
     //设置窗口没有边框
@@ -79,7 +79,7 @@ void Login::init_Login()
     setAutoFillBackground(true);
     QPalette palette;
     //palette.setColor(QPalette::Background, QColor(Qt::blue));
-    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/img/1.jpg")));//设置登陆背景
+    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/img/1.png")));//设置登陆背景
     setPalette(palette);
 }
 
