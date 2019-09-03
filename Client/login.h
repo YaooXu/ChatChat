@@ -6,8 +6,7 @@
 #include <QTcpSocket>
 #include <QByteArray>
 
-#include "chatchat.h"
-//#include "main_weight.h"
+#include "my_include.h"
 #include "reg.h"
 
 

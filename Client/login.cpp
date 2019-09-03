@@ -168,7 +168,7 @@ void Login::handData()
             qDebug() << "OK!";
             //登录成功,islogin设置为true,解除readyread槽函数
             islogin = true;
-            emit  loginSuccess();
+            emit loginSuccess();
             disconnect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
             close();
             return;

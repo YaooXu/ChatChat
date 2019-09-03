@@ -13,11 +13,11 @@ Chatroom::Chatroom(QTcpSocket *p_sock, QString tmp1, QString tmp2, QWidget *pare
     QWidget(parent)
 {
 
+
     p_chat_socket = p_sock;
     uID1 = tmp1;
     uID2 = tmp2;
-//    main_w = w;
-//    setWindowTitle(username);
+    setWindowTitle("Chatroom:" + tmp1 + " to " + tmp2);
     setWindowIcon(QPixmap(":/src/img/Chat_Icon.png"));
 
     //设置最大化最小化按钮无效
@@ -40,6 +40,33 @@ Chatroom::~Chatroom()
 {
 
 }
+
+void Chatroom::closeEvent(QCloseEvent* event)
+{
+    //当文档内容被修改时.
+//    if (ui.textEdit->document()->isModified())
+    if(true)
+    {
+        //跳出信息框，你是否要关闭.
+//        auto temp = QMessageBox::information(this, "tooltip", QString::fromLocal8Bit("你是否要关闭?"), QMessageBox::Yes | QMessageBox::No);
+//        if (temp == QMessageBox::Yes)
+//        {
+//            // 接受了 要关闭这个窗口的事件. accept和ignore只是作为一个标志.
+//            event->accept();
+//        }
+//        else
+//        {
+//            //忽略了 要关闭这个窗口的事件.当前窗口就不会被关闭.
+//            event->ignore();
+//        }
+        this->hide();
+    }
+    else
+    {
+        event->accept();
+    }
+}
+
 
 void Chatroom::init_widget()//初始化相关的控件
 {

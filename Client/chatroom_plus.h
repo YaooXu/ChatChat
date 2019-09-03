@@ -2,7 +2,7 @@
 #define CHATROOM_PLUS_H
 
 #include <QMainWindow>
-#include "chatchat.h"
+#include "my_include.h"
 #include "qnchatmessage.h"
 
 namespace Ui {
