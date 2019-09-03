@@ -211,6 +211,11 @@ void Main_Weight::hand_message()
     case LOGIN_REP://处理登录成功信号
 
         break;
+    case RECENT_LIST_REP://处理返回最近联系人列表
+    {
+
+    }
+        break;
     case MESSAGE_NOTI://服务器发送消息到客户端
     {
         Message *p_message = decode2Message(pMsg, len);
@@ -226,6 +231,7 @@ void Main_Weight::hand_message()
         else {
             Map_Chatroom[tmp_ID2]->show();
         }
+
         Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
     }
 
