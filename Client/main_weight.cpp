@@ -33,6 +33,7 @@ void Main_Weight::log_in(){
 //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
 //        My_info->ID=ba.data();
         init_main_Weight();
+        this->show();
 
         connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
         if(p_socket->isOpen())
@@ -40,7 +41,7 @@ void Main_Weight::log_in(){
             Map_Socket.insert(userid, p_socket);
             qDebug() << "main:success connect socket!";
         }
-        this->show();
+
 }
 
 void Main_Weight::init_main_Weight()

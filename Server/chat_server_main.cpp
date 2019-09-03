@@ -351,7 +351,9 @@ void user_login(const char *ID, const char *password,
         // 登录成功继续发送好友列表,个人信息列表
         printf("发送初始信息\n");
         send_user_info(ID, pUser_connect_info);
+        sleep(1);
         send_friend_list(ID, pUser_connect_info);
+        sleep(1);
         send_recent_list(ID, pUser_connect_info);
     }
     delete[] pData;
