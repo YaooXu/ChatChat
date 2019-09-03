@@ -63,7 +63,6 @@ void info::on_submit_clicked()//读数据
     message["question"]=question.toStdString().c_str();
     message["ID"]= ID.toStdString().c_str();
     message["photo_id"]=photo_num;
-
     uint32_t len = 0;
     uint8_t *pData = encode(CHANGE_MY_INF_REQ, message, len);
     ptr_socket->write((char*)pData,len);

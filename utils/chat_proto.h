@@ -28,9 +28,9 @@
 // 发给服务器的server_id
 #define REGISTER_REQ 1000
 #define LOGIN_REQ 1001
-#define RECENT_LIST_REQ 1002
+#define RECENT_LIST_REQ 1002    //请求最近消息列表
 
-#define FRIEND_LIST_REQ 1003
+#define FRIEND_LIST_REQ 1003    //请求好友列表
 #define FRIEND_FIND_REQ 1004
 #define FRIEND_ADD_REQ 1014
 #define FRIEND_DELETE_REQ 1005
@@ -50,8 +50,8 @@
 // REP 对于请求的回应
 #define REGISTER_REP 5000
 #define LOGIN_REP 5001
-#define RECENT_LIST_REP 5002
-#define FRIEND_LIST_REP 5003
+#define RECENT_LIST_REP 5002    //返回最近联系人消息
+#define FRIEND_LIST_REP 5003    //返回好友列表
 #define FRIEND_FIND_REP 5004
 #define FRIEND_DELETE_REP 5005
 #define FRIEND_VERIFY_REP 5006
@@ -152,6 +152,7 @@ void myProtoMsgPrint(MyProtoMsg &msg);
 uint8_t *encode(uint16_t server_id, Json::Value root, uint32_t &len);
 
 // 请求好友列表返回的结构体
+// 好友添加是返回的ID1的结构体
 class User_in_list {
 public:
     char *ID;
@@ -210,7 +211,7 @@ User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length);
 
 User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length);
 
-User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length);
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length);
 
 Message *decode2Message(MyProtoMsg *pMsg, int len);
 
