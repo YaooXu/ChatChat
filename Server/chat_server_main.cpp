@@ -208,6 +208,10 @@ void send_friend_list(const char *ID, User_connect_info *pUser_connect_info) {
     // }
 }
 
+void send_friend_info(const char *ID, User_connect_info *pUser_connect_info) {
+    
+}
+
 void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
     int status, RESPTYPE = RECENT_LIST_REP;
     uint32_t len = 0;
@@ -336,6 +340,7 @@ void user_login(const char *ID, const char *password,
     response["status"] = status;
     uint8_t *pData = encode(RESPTYPE, response, len);
     send(pUser_connect_info->user_fd, pData, len, 0);
+
     if (status == NORMAL) {
         // 登录成功继续发送好友列表,个人信息列表
         send_user_info(ID, pUser_connect_info);
@@ -477,7 +482,6 @@ int insert_chat_content(const char *ID1, const char *ID2, const char *content,
     close_connection(mysql);
 }
 
-//
 // 返回值:给ID2发送申请消息是否成功
 int friend_add_noti(const char *ID1, const char *ID2,
                     User_connect_info *pUser_connect_info) {
@@ -585,29 +589,30 @@ void friend_add_req(const char *ID1, const char *ID2, int group_id,
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
-    }
-    mysql_connect(mysql);
-
-    char value[505] = {0};
-    // 暂时把ID2加到ID1的-group_id里
-    sprintf(value, "'%s','%s','%d'", ID1, ID2, -group_id);
-    char field[50] = "Id1,Id2,Groupint";
-    char table_name[50] = "Friend";
-    int state = insert_data(mysql, field, table_name, value);
-
-    if (state == 0) {
-        // 插入成功
-        // 通知ID2
-        status = friend_add_noti(ID1, ID2, pUser_connect_info);
-    } else {
         status = EDATABASE_WRECK;
-    }
+    } else {
+        mysql_connect(mysql);
 
+        char value[505] = {0};
+        // 暂时把ID2加到ID1的-group_id里
+        sprintf(value, "'%s','%s','%d'", ID1, ID2, -group_id);
+        char field[50] = "Id1,Id2,Groupint";
+        char table_name[50] = "Friend";
+        int state = insert_data(mysql, field, table_name, value);
+
+        if (state == 0) {
+            // 插入成功, 尝试通知ID2
+            status = friend_add_noti(ID1, ID2, pUser_connect_info);
+        } else {
+            status = EDATABASE_WRECK;
+        }
+    }
     response["status"] = status;
     uint8_t *pData = encode(FRIEND_ADD_FIRST_REP, response, len);
     send(pUser_connect_info->user_fd, pData, len, 0);
 }
 
+// ID1请求给ID2发消息
 void send_message(const char *ID1, const char *ID2, const char *content,
                   User_connect_info *pUser1_connect_info) {
     int RESPTYPE = MESSAGE_NOTI;
@@ -648,6 +653,7 @@ void send_message(const char *ID1, const char *ID2, const char *content,
     }
     return;
 }
+
 
 void *handClient(void *arg) {
     char buf[1024] = {0};
@@ -698,7 +704,7 @@ void *handClient(void *arg) {
                 const char *password = pMsg->body["password"].asCString();
                 user_login(ID, password, pUser_connect_info);
             } else if (LOGIN_REQ == RECENT_LIST_REQ) {
-                // TODO:最近消息列表
+                // 最近消息列表
                 const char *ID = pMsg->body["ID"].asCString();
                 send_recent_list(ID, pUser_connect_info);
             } else if (server_id == FRIEND_LIST_REQ) {
@@ -706,20 +712,22 @@ void *handClient(void *arg) {
                 const char *ID = pMsg->body["ID"].asCString();
                 send_friend_list(ID, pUser_connect_info);
             } else if (server_id == FRIEND_ADD_REQ) {
-                // TODO:好友添加
+                // 好友添加
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int group_id = pMsg->body["group_id"].asInt();
+                friend_add_req(ID1, ID2, group_id, pUser_connect_info);
             } else if (server_id == FRIEND_DELETE_REQ) {
+                // TODO:好友删除
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
-                // TODO:好友删除
             } else if (server_id == FRIEND_VERIFY_REQ) {
                 // TODO:ID1处理ID2的添加申请
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *choose = pMsg->body["choose"].asCString();
                 int group_id = pMsg->body["group_id"].asInt();
+
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
                 // TODO:分组改变
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -728,6 +736,7 @@ void *handClient(void *arg) {
             } else if (server_id == GET_FRIEND_INF_REQ) {
                 // TODO:好友信息请求
                 const char *ID = pMsg->body["ID"].asCString();
+                send_friend_list(ID, pUser_connect_info);
             } else if (server_id == GET_MY_INF_REQ) {
                 // 自身信息
                 const char *ID = pMsg->body["ID"].asCString();
@@ -755,7 +764,7 @@ void *handClient(void *arg) {
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 // 聊天记录
             } else if (server_id == FILE_TRANS_REQ) {
-                // 文件传输
+                // 文件传输!!!!!!!!!!!!!!!!!!!!!!!!!
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *file_name = pMsg->body["file_name"].asCString();
