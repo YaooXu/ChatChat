@@ -7,7 +7,7 @@ Main_Weight::Main_Weight(QWidget *parent) :
     ui(new Ui::main_Weight)
 {
 //    init_main_Weight();
-    setWindowFlags(Qt::WindowStaysOnBottomHint);
+//    setWindowFlags(Qt::WindowStaysOnBottomHint);
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
@@ -33,17 +33,14 @@ void Main_Weight::log_in(){
 //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
 //        My_info->ID=ba.data();
         init_main_Weight();
-<<<<<<< HEAD
-=======
 
->>>>>>> 4bffe8854d077c3080b64a904a1e86334afa4374
-        this->show();
         connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
         if(p_socket->isOpen())
         {
             Map_Socket.insert(userid, p_socket);
             qDebug() << "main:success connect socket!";
         }
+        this->show();
 }
 
 void Main_Weight::init_main_Weight()
@@ -98,6 +95,8 @@ void Main_Weight::init_main_Weight()
     qDebug() << "Message初始化";
     on_clicked_Message_Button();
 
+    p_Friend_List = new FriList(p_socket, userid);
+
 
     three_Layout->addWidget(p_Message_List);
 
@@ -143,10 +142,7 @@ void Main_Weight::on_clicked_Message_Button()
     uint32_t len = 0;
     Json::Value message;
     message["ID"] = userid.toStdString().c_str();
-<<<<<<< HEAD
-=======
     qDebug() << "userid = " << userid;
->>>>>>> 4bffe8854d077c3080b64a904a1e86334afa4374
     uint8_t *pData = encode(RECENT_LIST_REQ, message, len);
 
     qDebug() << "向服务器请求最近消息列表, length : " << len;
