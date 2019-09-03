@@ -25,7 +25,7 @@ public:
 
     bool islogin;
     void init_Login();
-    int userid;
+    QString userid;
     QString passwd;
     QString username;
     QString usericon;

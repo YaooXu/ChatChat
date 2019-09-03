@@ -9,14 +9,15 @@
 //}
 
 
-Chatroom::Chatroom(QWidget *parent) :
+Chatroom::Chatroom(QTcpSocket *p_sock, QString tmp1, QString tmp2, QWidget *parent) :
     QWidget(parent)
 {
 
-    qDebug() << "userID = " << userID;
-    qDebug() << "username = " << username;
+    p_chat_socket = p_sock;
+    uID1 = tmp1;
+    uID2 = tmp2;
 //    main_w = w;
-    setWindowTitle(username);
+//    setWindowTitle(username);
     setWindowIcon(QPixmap(":/src/img/Chat_Icon.png"));
 
     //设置最大化最小化按钮无效
@@ -45,11 +46,8 @@ void Chatroom::init_widget()//初始化相关的控件
     textBrowser = new QTextBrowser;
 
     //设置textBrowser背景颜色或图片
-    textBrowser->setStyleSheet("background-image: url(:/src/img/2.jpg);");//背景设置为2.jpg
+//    textBrowser->setStyleSheet("background-image: url(:/src/img/2.jpg);");//背景设置为2.jpg
     textBrowser->setMinimumSize(QSize(400, 300));
-
-
-
 
     QHBoxLayout *layout1 = new QHBoxLayout;
     layout1->addWidget(textBrowser);
@@ -167,7 +165,20 @@ void Chatroom::on_pushButton_clicked()
         add_msg(tr("我的消息"), lineEdit->text());//将要发送的消息内容加入textBrowser控件中
 //        main_w->send_Msg(userID, lineEdit->text().toStdString().data());//调用主窗口的send_Msg方法，向服务器提交send消息
 //        Todo:发送消息
+
+        uint32_t len = 0;
+        Json::Value message;
+        message["ID1"] = uID1.toStdString().c_str();
+        message["ID2"] = uID2.toStdString().c_str();
+        message["content"] = lineEdit->text().toStdString().c_str();
+        uint8_t *pData = encode(MESSAGE_SEND, message, len);
+
+        qDebug() << "给服务器发送消息, length : " << len;
+        p_chat_socket->write((char *)pData, len);
+
+
         qDebug() << "向服务器发送消息";
+
         lineEdit->clear();//发送完成后，将lineEdit控件内容清空
     }
     lineEdit->setFocus();

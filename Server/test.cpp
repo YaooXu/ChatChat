@@ -95,8 +95,11 @@ void send_friend_list() {
     }
 }
 
+
 /*最近联系人*/
 int get_recent_user() {
+    int status, RESPTYPE = RECENT_LIST_REP;
+    uint32_t len = 0;
     char ID[50] = {"123456"};
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
@@ -105,8 +108,7 @@ int get_recent_user() {
     mysql_connect(mysql);
     char sqlStr[1024] = {0};
     sprintf(sqlStr,
-            "select Id1,Id2,Content from ChatContent where Id1='%s' or Id2 "
-            "='%s' order by Time desc limit 1;",
+           "select tem.id,tem.Content,tem.Time FROM ((select Id1 as id,Content,Time  from ChatContent where Id2='%s') union (select Id2 as id,Content,Time  from ChatContent where Id1='%s')  order by Time desc)as tem group by tem.id",
             ID, ID);
     printf("%s\n", sqlStr);
     if (mysql_query(mysql, sqlStr) != 0) {
@@ -121,6 +123,8 @@ int get_recent_user() {
         printf("%s\n", mysql_error(mysql));
         return -1;
     }
+    Json::Value user;
+    Json::Value response;
     int num_row, num_col;
     MYSQL_ROW mysql_row;
     num_row = mysql_num_rows(result);
@@ -131,7 +135,23 @@ int get_recent_user() {
         for (int j = 0; j < num_col; j++) {
             printf("[Row %d,Col %d]==>[%s]\n", i, j, mysql_row[j]);
         }
+        user["ID"]=mysql_row[0];
+        user["last_message"]=mysql_row[1];
+        user["time"]=mysql_row[2];
+        response["list"].append(user);
     }
+    response["status"] = status;
+    uint8_t *pData = encode(RESPTYPE, response, len);
+     //send(pUser_conect_info->user_fd, pData, len, 0);
+
+        // 解包测试
+        char *buf = (char *)pData;
+        int num = 0;
+        User_in_recent *pUser_in_recent = decode2User_recent(buf, len, num);
+        for (int i = 0; i < num; i++) {
+            printf("%s, %s, %s\n", pUser_in_recent[i].ID,
+                    pUser_in_recent[i].last_message, pUser_in_recent[i].time);
+        }
 }
 
 /*获取聊天记录*/
@@ -359,6 +379,6 @@ void get_user_information() {
 }
 
 int main() {
-    get_user_information();
+    get_recent_user();
     return 0;
 }

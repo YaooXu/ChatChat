@@ -105,12 +105,12 @@ void Login::loginBtnOnclick()
 
             qDebug() << "进入点击事件";
 
-            QString uName = lineEditUserID->text();
-
+            QString uID = lineEditUserID->text();
+            userid = uID;
             // 编码
             uint32_t len = 0;
             Json::Value message;
-            message["ID"] = uName.toStdString().c_str();
+            message["ID"] = uID.toStdString().c_str();
             message["password"] = passwd.toStdString().c_str();
             uint8_t *pData = encode(LOGIN_REQ, message, len);
 

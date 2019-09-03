@@ -8,9 +8,11 @@
 
 static QString ID2_temp;
 
-FriList::FriList(QWidget *parent,Qt::WindowFlags f)
+FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlags f)
     :QToolBox(parent,f)
 {
+    p_Friend_sock = p_sock;
+    userid = uID;
     friend_box = new QGroupBox;
     blacklist_box = new QGroupBox;
     family_box = new QGroupBox;
@@ -81,7 +83,7 @@ void FriList::setLay_classmate()
     layout_classmate = new QVBoxLayout(classmate_box);
     layout_classmate->setMargin(45);
     layout_classmate->setAlignment(Qt::AlignLeft);
-    this->addItem((QWidget*)classmate_box,QStringLiteral("同事"));
+    this->addItem((QWidget*)classmate_box,QStringLiteral("同学"));
 }
 
 void FriList::setLay_blc()
@@ -105,7 +107,8 @@ void FriList::add_friend(QString id, QString user, QString icon)//通过此类�
     qDebug()<<iconpath;
     tempButton->setIcon(QPixmap(iconpath));
     tempButton->setIconSize(QSize(100,30)); //设置按钮尺寸
-//    tempButton->setObjectName()
+    tempButton->setObjectName(id);//设置好友ID2对应toolbutton的name
+
     tempButton->setAutoRaise(true);   //当鼠标离开时，按钮恢复为弹起状态
     tempButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon); //设置按钮文字显示在图标旁边
 
@@ -116,7 +119,9 @@ void FriList::add_friend(QString id, QString user, QString icon)//通过此类�
         buttonMenu->exec(QCursor::pos());
     });
 
-    connect(tempButton, SIGNAL(clicked()), this, SLOT(create_Chatroom()));
+    //通过点击创建聊天窗口
+//    connect(tempButton, SIGNAL(clicked()), this, SLOT(create_Chatroom(tempButton->objectName())));
+    connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
 
     friend_list.append(tempButton);
@@ -219,10 +224,65 @@ void FriList::add_classmate(QString id, QString name, QString icon)
     layout_classmate->addWidget(classmate_list.last());
 }
 
-void FriList::create_Chatroom()
+void FriList::create_Chatroom(QString uID)
 {
-        Chatroom *p_tmp = new Chatroom();
+        Chatroom *p_tmp = new Chatroom(p_Friend_sock, userid, uID);
         p_tmp->setWindowTitle("Chatroom");
         p_tmp->resize(1600, 1200);
         p_tmp->show();
+}
+
+void FriList::clear_list()
+{
+    while(!friend_list.empty())
+    {
+        layout_fri->removeWidget(friend_list.last());
+        friend_list.pop_back();
+    }
+    while(!blacklist_list.empty())
+    {
+        layout_fri->removeWidget(blacklist_list.last());
+        blacklist_list.pop_back();
+    }
+    while(!family_list.empty())
+    {
+        layout_family->removeWidget(family_list.last());
+        family_list.pop_back();
+    }
+    while(!colleague_list.empty())
+    {
+        layout_colleague->removeWidget(colleague_list.last());
+        colleague_list.pop_back();
+    }
+    while(!classmate_list.empty())
+    {
+        layout_classmate->removeWidget(classmate_list.last());
+        classmate_list.pop_back();
+    }
+}
+
+bool FriList::is_empty()
+{
+    bool tmp = true;
+    if(!friend_list.empty())
+    {
+        tmp = false;
+    }
+    if(!blacklist_list.empty())
+    {
+        tmp = false;
+    }
+    if(!family_list.empty())
+    {
+        tmp = false;
+    }
+    if(!colleague_list.empty())
+    {
+        tmp = false;
+    }
+    if(!classmate_list.empty())
+    {
+        tmp = false;
+    }
+    return tmp;
 }

@@ -464,11 +464,11 @@ void send_message(const char *ID1, const char *ID2, const char *content,
         response_to2["content"] = content;
         response_to1["status"] = NORMAL;
 
-        uint8_t *pData = encode(RESPTYPE, response_to1, len);
-        send(pUser1_connect_info->user_fd, pData, len, 0);
+        // uint8_t *pData = encode(RESPTYPE, response_to1, len);
+        // send(pUser1_connect_info->user_fd, pData, len, 0);
 
         // 防止内存泄漏
-        delete[] pData;
+        // delete[] pData;
 
         uint8_t *pData = encode(RESPTYPE, response_to2, len);
         if (send(pUser2_connect_info->user_fd, pData, len, 0) > 0) {
