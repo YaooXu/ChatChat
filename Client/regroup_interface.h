@@ -3,6 +3,9 @@
 //#define REGROUP_INTERFACE_H
 
 #include <QDialog>
+#include <qdebug.h>
+#include <QTcpSocket>
+#include "../utils/chat_proto.h"
 
 namespace Ui {
 class regroup_interface;
@@ -13,7 +16,7 @@ class regroup_interface : public QDialog
     Q_OBJECT
 
 public:
-    explicit regroup_interface(QWidget *parent = nullptr,QString ID2=NULL);
+    explicit regroup_interface(QWidget *parent = nullptr,QString userid=nullptr,QString ID2=nullptr,QTcpSocket *p_socket=nullptr);
     ~regroup_interface();
 
 private slots:
@@ -29,7 +32,9 @@ private slots:
 
 private:
     Ui::regroup_interface *ui;
+    QString ID1;
     QString ID2_temp;
+    QTcpSocket *p_regroup_socket;
 };
 
 //#endif // REGROUP_INTERFACE_H

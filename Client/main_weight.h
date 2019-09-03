@@ -10,6 +10,8 @@
 #include "login.h"
 #include "frilist.h"
 #include "chatroom.h"
+#include "addfri_interface.h"
+#include "info.h"
 
 
 namespace Ui {
@@ -63,6 +65,8 @@ public slots:
     void create_Chatroom(QString uID);
     void hand_message();
     void create_Chatroom_whz();
+    void create_addfri();
+    void create_info();
 
 private slots:
     void on_clicked_Friend_Button();
