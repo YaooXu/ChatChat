@@ -1,4 +1,4 @@
-#include "chatchat.h"
+#include "my_include.h"
 #include <QApplication>
 #include "chatroom.h"
 #include "main_weight.h"

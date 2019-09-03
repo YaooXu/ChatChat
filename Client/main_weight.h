@@ -6,7 +6,7 @@
 #include <QStackedLayout>
 
 
-#include "chatchat.h"
+#include "my_include.h"
 #include "login.h"
 #include "frilist.h"
 #include "chatroom.h"

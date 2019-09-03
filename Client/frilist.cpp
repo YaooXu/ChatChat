@@ -138,6 +138,7 @@ void FriList::add_blacklist(QString id, QString name, QString icon)
     qDebug()<<iconpath;
     tempButton->setIcon(QPixmap(iconpath));
     tempButton->setIconSize(QSize(100,30));
+    tempButton->setObjectName(id);//设置好友ID2对应toolbutton的name
     tempButton->setAutoRaise(true);
     tempButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
@@ -147,9 +148,11 @@ void FriList::add_blacklist(QString id, QString name, QString icon)
         ID2_temp=ID2;
         buttonMenu->exec(QCursor::pos());
     });
+    connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
     blacklist_list.append(tempButton);
     layout_blacklist->addWidget(blacklist_list.last());
+
 }
 
 void FriList::add_family(QString id, QString name, QString icon)
@@ -162,6 +165,7 @@ void FriList::add_family(QString id, QString name, QString icon)
     qDebug()<<iconpath;
     tempButton->setIcon(QPixmap(iconpath));
     tempButton->setIconSize(QSize(100,30));
+    tempButton->setObjectName(id);//设置好友ID2对应toolbutton的name
     tempButton->setAutoRaise(true);
     tempButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
@@ -171,6 +175,7 @@ void FriList::add_family(QString id, QString name, QString icon)
         ID2_temp=ID2;
         buttonMenu->exec(QCursor::pos());
     });
+    connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
     family_list.append(tempButton);
     layout_family->addWidget(family_list.last());
@@ -186,6 +191,7 @@ void FriList::add_colleague(QString id, QString name, QString icon)
     qDebug()<<iconpath;
     tempButton->setIcon(QPixmap(iconpath));
     tempButton->setIconSize(QSize(100,30));
+    tempButton->setObjectName(id);//设置好友ID2对应toolbutton的name
     tempButton->setAutoRaise(true);
     tempButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
@@ -195,6 +201,7 @@ void FriList::add_colleague(QString id, QString name, QString icon)
         ID2_temp=ID2;
         buttonMenu->exec(QCursor::pos());
     });
+    connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
     colleague_list.append(tempButton);
     layout_colleague->addWidget(colleague_list.last());
@@ -210,6 +217,7 @@ void FriList::add_classmate(QString id, QString name, QString icon)
     qDebug()<<iconpath;
     tempButton->setIcon(QPixmap(iconpath));
     tempButton->setIconSize(QSize(100,30));
+    tempButton->setObjectName(id);//设置好友ID2对应toolbutton的name
     tempButton->setAutoRaise(true);
     tempButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
@@ -219,6 +227,7 @@ void FriList::add_classmate(QString id, QString name, QString icon)
         ID2_temp=ID2;
         buttonMenu->exec(QCursor::pos());
     });
+    connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
     classmate_list.append(tempButton);
     layout_classmate->addWidget(classmate_list.last());
@@ -227,8 +236,7 @@ void FriList::add_classmate(QString id, QString name, QString icon)
 void FriList::create_Chatroom(QString uID)
 {
         Chatroom *p_tmp = new Chatroom(p_Friend_sock, userid, uID);
-        p_tmp->setWindowTitle("Chatroom");
-        p_tmp->resize(1600, 1200);
+        p_tmp->resize(700, 600);
         p_tmp->show();
 }
 

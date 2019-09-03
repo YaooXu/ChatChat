@@ -11,7 +11,7 @@
 #include <QMenu>
 #include <QString>
 
-#include "chatchat.h"
+#include "my_include.h"
 #include "chatroom.h"
 
 
