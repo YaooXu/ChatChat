@@ -307,7 +307,7 @@ User_in_list *decode2User_list(MyProtoMsg *pMsg, int &length) {
     return pUsers_in_list;
 }
 
-User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length) {
+User_info *decode2User_info(MyProtoMsg *pMsg, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // 查寻自己的信息
 //    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);

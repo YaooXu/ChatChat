@@ -351,7 +351,9 @@ void user_login(const char *ID, const char *password,
         // 登录成功继续发送好友列表,个人信息列表
         printf("发送初始信息\n");
         send_user_info(ID, pUser_connect_info);
+        // sleep(1);
         send_friend_list(ID, pUser_connect_info);
+        // sleep(1);
         send_recent_list(ID, pUser_connect_info);
     }
     delete[] pData;
@@ -629,6 +631,7 @@ void send_message(const char *ID1, const char *ID2, const char *content,
 
     if (is_online(ID2)) {
         // ID2在线
+        printf("%s 在线, 准备发送消息\n", ID2);
         User_connect_info *pUser2_connect_info = ID2info[atoi(ID2)];
 
         const char *time = get_time();
@@ -652,6 +655,7 @@ void send_message(const char *ID1, const char *ID2, const char *content,
         }
     } else {
         // TODO:离线消息处理
+        printf("%s 不在线\n", ID2);
         response_to1["status"] = EOPPOSITE_SIDE_OFFLINE;
         uint8_t *pData = encode(RESPTYPE, response_to1, len);
         send(pUser1_connect_info->user_fd, pData, len, 0);
