@@ -204,7 +204,7 @@ public:
     char *time;
 };
 
-MyProtoMsg *decode2Msg(MyProtoMsg *pMsg, int len);
+MyProtoMsg *decode2Msg(const char *buf, int len);
 
 User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length);
 

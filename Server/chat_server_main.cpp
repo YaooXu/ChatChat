@@ -391,7 +391,7 @@ void user_register(const char *name, const char *password,
     Json::Value response;
 
     int ID = getUnrepeatId();
-    char field[50] = "Id,Name,Password,LastLoginState";
+    char field[50] = "Id,Name,Password,LastLoginTime";
     char table_name[50] = "User";
     char message[50] = {0};
     sprintf(message, "'%d','%s','%s',NOW()", ID, name, password);
@@ -574,9 +574,9 @@ int friend_add_noti(const char *ID1, const char *ID2,
     //            pUser_in_list[i].sex_id, pUser_in_list[i].online);
 }
 
+// 好友请求申请
 void friend_add_req(const char *ID1, const char *ID2, int group_id,
                     User_connect_info *pUser_connect_info) {
-    // ID1的添加好友请求
     int status;
     uint32_t len = 0;
     int int_ID = atoi(ID1);
@@ -607,6 +607,7 @@ void friend_add_req(const char *ID1, const char *ID2, int group_id,
     uint8_t *pData = encode(FRIEND_ADD_FIRST_REP, response, len);
     send(pUser_connect_info->user_fd, pData, len, 0);
 }
+
 void send_message(const char *ID1, const char *ID2, const char *content,
                   User_connect_info *pUser1_connect_info) {
     int RESPTYPE = MESSAGE_NOTI;
@@ -765,7 +766,7 @@ void *handClient(void *arg) {
     }
 }
 
-int PORT = 8888;
+int PORT = 5117;
 
 int main() {
     char *IP = get_my_ip();
@@ -780,7 +781,7 @@ int main() {
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = ntohs(PORT);
 
-    if (1 != inet_pton(AF_INET, IP, &server_addr.sin_addr)) {
+    if (1 != inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr)) {
         perror("Invalid IP");
         exit(1);
     }

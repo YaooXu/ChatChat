@@ -15,7 +15,7 @@ Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     connect(regBtn,SIGNAL(clicked()), this, SLOT(change_reg()));
     //    connect*()
 
-    p_login_socket->connectToHost("182.92.193.104", 5117);
+    p_login_socket->connectToHost("192.168.28.135", 5117);
     connect(p_login_socket, SIGNAL(connected()), this, SLOT(handconnect()));
 }
 
