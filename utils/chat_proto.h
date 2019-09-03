@@ -152,6 +152,7 @@ void myProtoMsgPrint(MyProtoMsg &msg);
 uint8_t *encode(uint16_t server_id, Json::Value root, uint32_t &len);
 
 // 请求好友列表返回的结构体
+// 好友添加是返回的ID1的结构体
 class User_in_list {
 public:
     char *ID;

@@ -1,4 +1,5 @@
 #include "chat_proto.h"
+// #include <QDebug>
 
 using namespace std;
 
@@ -338,6 +339,7 @@ User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length){
     // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
+//    qDebug() << "结构体数组长度:" << length;
     User_in_recent *pUser_recent = new User_in_recent[length];
 
     for (int i = 0; i < length; i++) {

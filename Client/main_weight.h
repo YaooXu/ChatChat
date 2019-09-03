@@ -69,7 +69,8 @@ public slots:
     void create_addfri();
     void create_info();
     void change_main_photo(int);
-
+    void change_description(QString);
+    void change_name(QString);
 private slots:
     void on_clicked_Friend_Button();
     void on_clicked_Message_Button();

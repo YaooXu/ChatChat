@@ -7,6 +7,7 @@ Main_Weight::Main_Weight(QWidget *parent) :
     ui(new Ui::main_Weight)
 {
 //    init_main_Weight();
+    setWindowFlags(Qt::WindowStaysOnBottomHint);
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
@@ -28,9 +29,14 @@ void Main_Weight::log_in(){
 
         qDebug() << "登录成功";
         userid = lg->userid;
+        qDebug() << "从login里面赋值id" << userid;
 //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
 //        My_info->ID=ba.data();
         init_main_Weight();
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4bffe8854d077c3080b64a904a1e86334afa4374
         this->show();
         connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
         if(p_socket->isOpen())
@@ -55,7 +61,7 @@ void Main_Weight::init_main_Weight()
 
 
     p_User_name = new QLabel();
-    p_User_name->setText("用户名");
+    //p_User_name->setText("用户名");
     p_User_personal = new QLabel();
     p_User_personal->setText("个人介绍");
 
@@ -137,6 +143,10 @@ void Main_Weight::on_clicked_Message_Button()
     uint32_t len = 0;
     Json::Value message;
     message["ID"] = userid.toStdString().c_str();
+<<<<<<< HEAD
+=======
+    qDebug() << "userid = " << userid;
+>>>>>>> 4bffe8854d077c3080b64a904a1e86334afa4374
     uint8_t *pData = encode(RECENT_LIST_REQ, message, len);
 
     qDebug() << "向服务器请求最近消息列表, length : " << len;
@@ -252,9 +262,13 @@ void Main_Weight::hand_message()
     case GET_MY_INF_REP:{
         self_info = new info(p_socket);
         connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
+        connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
+        connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
         int length = 0;
         User_info *pUser_info = decode2User_info(pMsg, length);
         int x=pUser_info->photo_id;
+        p_User_name->setText(pUser_info->name);
+        p_User_personal->setText(pUser_info->description);
         QString image_name;
         image_name.sprintf(":/src/img/%d.png",x);
         p_User_icon->setIcon(QPixmap(image_name));
@@ -391,8 +405,16 @@ void Main_Weight::change_main_photo(int x){
     QString imagename2;
 
     imagename2.sprintf(":/src/img/%d.png",x);
-    p_User_name->setText("tzy");
+    //p_User_name->setText("tzy");
     p_User_icon->setIcon(QPixmap(imagename2));
-    qDebug()<<"changephoto to " << imagename2;
+    //qDebug()<<"changephoto to " << imagename2;
+
+}
+void Main_Weight::change_description(QString des){
+    p_User_personal->setText(des);
+    //qDebug()<<"sad";
+}
+void Main_Weight::change_name(QString name){
+    p_User_name->setText(name);
 
 }
