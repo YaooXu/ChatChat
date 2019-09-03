@@ -1,5 +1,6 @@
 #include "login.h"
 #include "ui_login.h"
+#include <cstring>
 
 Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     QDialog(parent),
@@ -12,9 +13,9 @@ Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     connect(loginBtn,SIGNAL(clicked()), this, SLOT(loginBtnOnclick()));
     connect(logoutBtn,SIGNAL(clicked()), this, SLOT(logoutBtnOnclick()));
     connect(regBtn,SIGNAL(clicked()), this, SLOT(change_reg()));
-//    connect*()
+    //    connect*()
 
-    p_login_socket->connectToHost("127.0.0.1", 8888);
+    p_login_socket->connectToHost("182.92.193.104", 5117);
     connect(p_login_socket, SIGNAL(connected()), this, SLOT(handconnect()));
 }
 
@@ -68,7 +69,7 @@ void Login::init_Login()
 
     islogin = false;
     setWindowIcon(QPixmap(":/src/img/1.jpg"));//设置窗口图标
-  //  lineEditUserID->setFocus();//设置lineEditUserID控件具有输入焦点
+    //  lineEditUserID->setFocus();//设置lineEditUserID控件具有输入焦点
 
     //设置窗口没有边框
     setWindowFlags(Qt::FramelessWindowHint);
@@ -88,7 +89,7 @@ void Login::loginBtnOnclick()
     if (lineEditUserID->text().isEmpty())//如果lineEditUserID控件内容为空，提示用户错误
     {
         QMessageBox::information(this, tr("错误"), tr("用户ID不能为空"));
-        lineEditUserID->setFocus();
+        //lineEditUserID->setFocus();
     }
     else
     {
@@ -98,7 +99,7 @@ void Login::loginBtnOnclick()
         if (!ok)//如果lineEditUserID控件内容不是数字，提示用户错误
         {
             QMessageBox::information(this, tr("错误"), tr("用户ID必须是数字"));
-            lineEditUserID->setFocus();
+            //  lineEditUserID->setFocus();
         }else
         {
             passwd = lineEditPasswd->text();
@@ -123,12 +124,12 @@ void Login::loginBtnOnclick()
 
 void Login::logoutBtnOnclick()
 {
-    close();
+    this->close();
 }
 
 void Login::handconnect()
 {
-    loginBtn->setEnabled(true);
+    //loginBtn->setEnabled(true);
     QMessageBox::information(this, "zzz", "连接成功！");
     connect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
 }
@@ -159,28 +160,47 @@ void Login::handData()
 
     int server_id = pMsg->head.server_id;
 
-    // status为状态码,只有NORMAL才是正常
     qDebug() << pMsg->body["status"].asInt();
-    if (pMsg->body["status"].asInt() == NORMAL) {
-        qDebug() << "OK!";
-        //登录成功,islogin设置为true,解除readyread槽函数
-        islogin = true;
-        disconnect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
-        close();
-        return;
 
-    } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
-        qDebug() << "PASSWORD WRONG";
-    } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {
-        qDebug() << "USER NOT EXSIT";
-    } else {
-        qDebug() << "UNKOWN ERROR";
+    switch(server_id){
+    case LOGIN_REP:
+        if (pMsg->body["status"].asInt() == NORMAL) {
+            qDebug() << "OK!";
+            //登录成功,islogin设置为true,解除readyread槽函数
+            islogin = true;
+            emit  loginSuccess();
+            disconnect(p_login_socket, SIGNAL(readyRead()), this, SLOT(handData()));
+            close();
+            return;
+
+        } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
+            qDebug() << "PASSWORD WRONG";
+        } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {
+            qDebug() << "USER NOT EXSIT";
+        } else {
+            qDebug() << "UNKOWN ERROR";
+        }
+        break;
+    case REGISTER_REP:
+        qDebug()<<pMsg->body["status"].asInt();
+        if(pMsg->body["status"].asInt()==NORMAL){
+             QString ID = QString(pMsg->body["ID"].asCString());
+             QMessageBox::critical(this, "成功", ID, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+             qDebug()<<ID;
+        }
+
+         //QMessageBox::information(this, tr("错误"), tr("用户ID必须是数字"));
+
+        break;
     }
+    // status为状态码,只有NORMAL才是正常
+
 
     return;
 }
 
 void Login::change_reg(){
+    setWindowFlag(Qt::WindowStaysOnTopHint,false);
     reg * u= new reg(p_login_socket);
     u->show();
     return;
