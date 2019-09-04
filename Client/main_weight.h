@@ -12,6 +12,9 @@
 #include "chatroom.h"
 #include "addfri_interface.h"
 #include "info.h"
+#include "receive_addfri_interface.h"
+#include "friendinfo_interface.h"
+#include "qdebug.h"
 
 
 namespace Ui {

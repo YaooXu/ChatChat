@@ -436,19 +436,18 @@ void user_register(const char *name, const char *password,
 }
 
 void update_user_info(const char *ID, const char *name, int photo_id,
-                      int sex_id, const char *tel, const char *description,
+                      int sex_id, const char *tel, const char *description,const char *question,const char *answer,
                       User_connect_info *pUser_connect_info) {
     int RESPTYPE = CHANGE_MY_INF_REP;
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
     Json::Value response;
-
     char email[50] = {""};
     char value[512] = {0};
     sprintf(value,
             "Name='%s',Photo='%d',Sex='%d',Email='%s',Telephone='%s',"
-            "Description='%s'",
-            name, photo_id, sex_id, email, tel, description);
+            "Description='%s',Question='%s',Answer='%s'",
+            name, photo_id, sex_id, email, tel, description,question,answer);
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -796,7 +795,9 @@ void *handClient(void *arg) {
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int choose = pMsg->body["choose"].asInt();
                 int group_id = pMsg->body["group_id"].asInt();
-                friend_add_req2(ID1, ID2, choose, group_id, pUser_connect_info);
+               
+                friend_add_req2(ID1,ID2,group_id,choose,pUser_connect_info);
+
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
                 // TODO:分组改变
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -820,7 +821,7 @@ void *handClient(void *arg) {
                 const char *question = pMsg->body["question"].asCString();
                 const char *answer = pMsg->body["answer"].asCString();
                 const char *description = pMsg->body["description"].asCString();
-                update_user_info(ID, name, photo_id, sex_id, tel, description,
+                update_user_info(ID, name, photo_id, sex_id, tel, description,question,answer,
                                  pUser_connect_info);
             } else if (server_id == MESSAGE_SEND) {
                 // 消息发送
