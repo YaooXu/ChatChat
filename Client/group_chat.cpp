@@ -18,7 +18,7 @@ group_chat::~group_chat()
     delete ui;
 
 }
-void group_chat::on_pushButton_2_clicked()//将我的消息传给服务器
+void group_chat::on_pushButton_2_clicked(QString name)//将我的消息传给服务器
 {
     if( ui->pre_text->text().isEmpty())//如果lineEdit控件内容为空，提示用户不能发送空消息
     {

@@ -352,6 +352,9 @@ void user_login(const char *ID, const char *password,
         send_friend_list(ID, pUser_connect_info);
         // sleep(1);
         send_recent_list(ID, pUser_connect_info);
+
+        // 登记User_connect_info
+        pUser_connect_info->user_id = atoi(ID);
     }
     delete[] pData;
 }
@@ -617,7 +620,7 @@ void friend_add_req(const char *ID1, const char *ID2, int group_id,
     send(pUser_connect_info->user_fd, pData, len, 0);
 }
 
-int send_message_to_all(const char *buf, int len) {
+int send_message_to_all(const char *buf, int len, User_connect_info *pUser_connet_info) {
     // Message *message = new Message();
     // strcpy(message->ID1, "12345");
     // strcpy(message->ID2, "guxiao");
@@ -626,6 +629,11 @@ int send_message_to_all(const char *buf, int len) {
     map<int, User_connect_info *>::iterator iter;
     for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
         int id = iter->first;
+        printf("%d %d\n", id, pUser_connet_info->user_id);
+        // 就不再给发送者发消息了
+        if (id == pUser_connet_info->user_id) {
+            continue;
+        }
         User_connect_info *user = iter->second;
         // response["ID1"] = message->ID1;
         // response["ID2"] = message->ID2;
@@ -839,6 +847,8 @@ void *handClient(void *arg) {
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *file_name = pMsg->body["file_name"].asCString();
                 file_trans(ID1, ID2, file_name, pUser_connect_info);
+            } else if (server_id == MESSAGE_GROUP_SEND) {
+                send_message_to_all(buf, len, pUser_connect_info);
             }
         }
         // send(confd,buf,strlen(buf),0);
