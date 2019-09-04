@@ -4,8 +4,8 @@ CREATE TABLE User
 Id int  primary key,
 Name varchar(255) NOT NULL,
 Password varchar(255) NOT NULL,
-Photo int,
-Sex int,
+Photo int default 1,
+Sex int default 0,
 Email varchar(255),
 Telephone varchar(255),
 Question varchar(255),
@@ -26,8 +26,8 @@ CREATE TABLE ChatContent
 (
 Id1 int,
 Id2 int, 
-ReadState1 int,
-ReadState2 int,
+ReadState1 int default 0,
+ReadState2 int default 0,
 Time DATETIME,
 Content text,
 constraint s1 foreign key(Id1,Id2) references Friend(Id1,Id2)
