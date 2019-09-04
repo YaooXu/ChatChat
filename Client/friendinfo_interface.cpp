@@ -1,21 +1,37 @@
 #include "friendinfo_interface.h"
 #include "ui_friendinfo_interface.h"
 
-friendinfo_interface::friendinfo_interface(QWidget *parent,QString ID2,QTcpSocket *p_socket) :
+friendinfo_interface::friendinfo_interface(QWidget *parent,QString fri_ID,int fri_Icon,QString fri_Name,int fri_Sex,QString fri_des,QString fri_tel) :
     QDialog(parent),
     ui(new Ui::friendinfo_interface)
 {
     ui->setupUi(this);
-    ID2_temp=ID2;
-    p_finfo_sock=p_socket;
-
-    uint32_t len=0;
-    Json::Value message;
-    message["ID2"]=ID2_temp.toStdString().c_str();
-    uint8_t *pData=encode(GET_FRIEND_INF_REQ,message,len);
-    p_finfo_sock->write((char*)pData,len);
+    ID=fri_ID;
+    Icon=fri_Icon;
+    Name=fri_Name;
+    Sex=fri_Sex;
+    Description=fri_des;
+    tel=fri_tel;
 
 
+    ui->label_ID->setText(ID);
+    ui->label_name->setText(Name);
+    if(Sex==0)
+    {
+        ui->label_sex->setText("未知");
+    }
+    if(Sex==1)
+    {
+        ui->label_sex->setText("男");
+    }
+    if(Sex==2)
+    {
+        ui->label_sex->setText("女");
+    }
+    ui->label_description->setText(Description);
+    QString iconpath = QString(":/src/img/%1.png").arg(Icon);
+    ui->iconButton->setIcon(QPixmap(iconpath));
+    ui->label_tel->setText(tel);
 }
 
 friendinfo_interface::~friendinfo_interface()

@@ -33,7 +33,12 @@ void Main_Weight::log_in(){
     //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
     //        My_info->ID=ba.data();
     init_main_Weight();
+
+
     this->show();
+    //qDebug()<<user_name;
+
+    qDebug()<<user_name<<"1111111111111111111!!!!111";
     connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
     if(p_socket->isOpen())
     {
@@ -45,7 +50,7 @@ void Main_Weight::log_in(){
 void Main_Weight::init_main_Weight()
 {
 
-    this->setWindowTitle("QQ");
+    this->setWindowTitle("Chatchat");
 
     p_User_icon = new QPushButton();
     p_User_icon->setFixedSize(100, 100);
@@ -128,6 +133,10 @@ void Main_Weight::init_main_Weight()
 
     main_Layout->addLayout(three_Layout);
     main_Layout->addLayout(four_Layout);
+    setAutoFillBackground(true);
+    QPalette palette;
+    palette.setColor(QPalette::Background, QColor(Qt::color0));
+    setPalette(palette);
 
     //main_Layout->setStretch(0, 2);
     //main_Layout->setStretch(1, 1);
@@ -244,6 +253,7 @@ void Main_Weight::hand_message()
             break;
         case MESSAGE_NOTI://服务器发送消息到客户端
         {
+
             Message *p_message = decode2Message(pMsg);
             qDebug() << "收到服务器的消息, ID1 = " << QString(p_message->ID1) << ", ID2 = "<< QString(p_message->ID2);
             qDebug() << "content: " << QString(p_message->content);
@@ -299,6 +309,7 @@ void Main_Weight::hand_message()
         }
         case GET_MY_INF_REP:{
             self_info = new info(p_socket);
+            qDebug()<<"个人信息初始化";
             connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
             connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
             connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
@@ -306,6 +317,11 @@ void Main_Weight::hand_message()
             User_info *pUser_info = decode2User_info(pMsg, length);
             int x=pUser_info->photo_id;
             QString name=pUser_info->name;
+            user_name=name;
+            gp_chat=new group_chat(p_socket,userid,user_name);
+            qDebug()<<user_name<<"22222222222222";
+            connect(p_Group_Button,SIGNAL(clicked()),this,SLOT(on_clicked_group_button()));
+            qDebug()<<"111111111111111111111111"<<name<<lg->username;
             name="昵称:"+name;
             p_User_name->setText(name);
             QString mood=pUser_info->description;
@@ -327,9 +343,115 @@ void Main_Weight::hand_message()
             break;
 
         }
-        default:
+       case MESSAGE_GROUP_SEND:{
+            QString ID1 = QString(pMsg->body["ID1"].asCString());
+            QString name=QString(pMsg->body["name"].asCString());
+            QString content=QString(pMsg->body["content"].asCString());
+            QString time=QString(pMsg->body["time"].asCString());
+
+
+            gp_chat->add_msg1(name, content);
+            break;
+        }
+        case FRIEND_ADD_FIRST_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status==0)
+            {
+                QMessageBox::warning(this,"title","成功发送");
+            }
+            else {
+                {
+                    QMessageBox::warning(this,"title","发送失败");
+                }
+            }
+            break;
+        }
+        case FRIEND_ADD_NOTI:{
+            int length=0;
+            User_in_list *p_message = decode2User_list(pMsg,length);
+            QString claimer_ID=p_message->ID;
+            QString claimer_Name=p_message->name;
+            receive_addfri_interface *receive_addfri = new receive_addfri_interface(nullptr,userid,claimer_ID,claimer_Name,p_socket);
+            receive_addfri->show();
+            break;
+        }
+        case FRIEND_ADD_SECOND_REP:{
+            int status = pMsg->body["status"].asInt();
+            int result = pMsg->body["accept"].asInt();    //协议中没有留出，之后要在协议里加
+            if(result==0)
+            {
+                p_Friend_Button->click();
+                QMessageBox::warning(this,"title","您和对方已是好友");
+            }
+            else
+            {
+                p_Friend_Button->click();
+                QMessageBox::warning(this,"title","对方拒绝了您的申请");
+            }
             break;
 
+        }
+        case GET_FRIEND_INF_REP:{
+            int length=0;
+            User_in_list *p_message = decode2User_list(pMsg,length);
+            QString ID = p_message->ID;
+            int Icon=p_message->photo_id;
+            QString Name = p_message->name;
+            int Sex = p_message->sex_id;
+            QString Description = p_message->description;
+
+            friendinfo_interface *friendinfo = new friendinfo_interface(nullptr,ID,Icon,Name,Sex,Description);
+            friendinfo->show();
+            break;
+        }
+        case MESSAGE_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status!=0)
+            {
+                QMessageBox::warning(this,"title","对方不在线，将发送离线消息");
+            }
+            break;
+        }
+        case FRIEND_DELETE_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status==0)
+            {
+                QMessageBox::warning(this,"title","删除成功");
+                p_Friend_Button->click();
+            }
+            else
+            {
+                QMessageBox::warning(this,"title","删除失败");
+                p_Friend_Button->click();
+            }
+            break;
+        }
+        case FRIEND_GROUP_CHANGE_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status==0)
+            {
+                QMessageBox::warning(this,"title","改变分组成功");
+                p_Friend_Button->click();
+            }
+            else
+            {
+                QMessageBox::warning(this,"title","改变分组失败");
+                p_Friend_Button->click();
+            }
+            break;
+        }
+        case CURENT_GROUP_LIST:{
+            int num=pMsg->body["length"].asInt();
+            gp_chat->input_info(num);
+           //	gp_chat->ui->p_textBrowser->append("IP为："+IP+" ID为："+ID);
+            for(int i=0;i<num;i++){
+                QString ID = QString(pMsg->body["list"][i]["ID"].asCString());
+                QString IP = QString(pMsg->body["list"][i]["IP"].asCString());
+                gp_chat->add_info(ID,IP);
+            }
+        }
+        default:
+            break;
         }
         delete pMsg;
     }
@@ -348,7 +470,7 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
     p_Message_List->clear();
 
     QIcon aIcon;//假设头像
-    aIcon.addFile(":/src/img/1.jpg");
+    aIcon.addFile(":/src/img/1.png");
 
     for (int i = 0; i < num; i++)
     {
@@ -398,6 +520,7 @@ void Main_Weight::set_Friend_List(User_in_list *p_list, int num)
         qDebug() << "set_Friend_List:清空";
         three_Layout->removeWidget(p_Friend_List);
         p_Friend_List->clear_list();
+
         for(int i = 0; i < num; i++)
         {
             QString tmp_id = QString(p_list[i].ID);
@@ -469,4 +592,8 @@ void Main_Weight::change_name(QString name){
     name="昵称："+name;
     p_User_name->setText(name);
 
+}
+void Main_Weight::on_clicked_group_button(){
+    //qDebug()<<"aaaaaaaaaaa";
+    gp_chat->show();
 }

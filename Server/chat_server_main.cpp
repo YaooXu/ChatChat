@@ -209,7 +209,84 @@ void send_friend_list(const char *ID, User_connect_info *pUser_connect_info) {
 }
 
 void send_friend_info(const char *ID, User_connect_info *pUser_connect_info) {
+    int status, RESPTYPE = GET_FRIEND_INF_REP;
+    uint32_t len = 0;
+    int int_ID = atoi(ID);
+    Json::Value response;
 
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char sqlStr[1024] = {0};
+    sprintf(sqlStr,
+            "select "
+            "Id,Name,Photo,Sex,Email,Description,LastLoginTime,Telephone "
+            "from User where Id='%s'",
+            ID);
+    printf("%s\n", sqlStr);
+    if (mysql_query(mysql, sqlStr) != 0) {
+        // 查询失败,直接返回
+        printf("%s\n", mysql_error(mysql));
+        close_connection(mysql);
+        status = EDATABASE_WRECK;
+    } else {
+        // 查询成功
+        MYSQL_RES *result;
+        result = mysql_store_result(mysql);
+        close_connection(mysql);
+
+        if (result == NULL) {
+            // 未知错误
+            printf("%s\n", mysql_error(mysql));
+            status = EDATABASE_WRECK;
+        } else {
+            int num_row, num_col;
+            MYSQL_ROW mysql_row;
+            num_row = mysql_num_rows(result);
+            num_col = mysql_num_fields(result);
+
+            // 结构体数组长度
+            response["length"] = num_row;
+
+            Json::Value user;
+
+            for (int i = 0; i < num_row; i++) {
+                mysql_row = mysql_fetch_row(result);
+                for (int j = 0; j < num_col; j++) {
+                    printf("[Row %d,Col %d]==>[%s], is NULL:%d\n", i, j,
+                           mysql_row[j], mysql_row[j] == NULL);
+                }
+
+                user["ID"] = mysql_row[0];
+                user["photo_id"] =
+                    mysql_row[2] == NULL ? 0 : atoi(mysql_row[2]);
+                user["name"] = mysql_row[1];
+                // 当指针为NULL的时候直接赋值会段错误!
+                user["sex_id"] = mysql_row[3] == NULL ? 0 : atoi(mysql_row[3]);
+                user["tel"] = mysql_row[7] == NULL ? "" : mysql_row[7];
+                user["description"] = mysql_row[5] == NULL ? "" : mysql_row[5];
+                user["last_login_time"] =
+                    mysql_row[6] == NULL ? "" : mysql_row[6];
+                user["group_id"] = 0;
+                user["online"] = is_online(mysql_row[0]);
+                response["list"].append(user);
+            }
+        }
+    }
+    response["status"] = status;
+    uint8_t *pData = encode(RESPTYPE, response, len);
+    send(pUser_connect_info->user_fd, pData, len, 0);
+    // // 解包测试
+    // char *buf = (char *)pData;
+    // int num = 0;
+    // User_in_list *pUser_in_list = decode2User_list(buf, len, num);
+    // for (int i = 0; i < num; i++) {
+    //     printf("%s, %s, %d, %d, %d\n", pUser_in_list[i].name,
+    //            pUser_in_list[i].description, pUser_in_list[i].photo_id,
+    //            pUser_in_list[i].group_id, pUser_in_list[i].online);
+    // }
 }
 
 void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
@@ -251,7 +328,6 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
 
         int num_row, num_col;
 
-
         MYSQL_ROW mysql_row;
         num_row = mysql_num_rows(result);
         num_col = mysql_num_fields(result);
@@ -259,7 +335,7 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
 
         printf("最近联系人共有%d人\n", num_row);
         printf("row: %d,col: %d\n", num_row, num_col);
-        
+
         for (int i = 0; i < num_row; i++) {
             mysql_row = mysql_fetch_row(result);
             // for (int j = 0; j < num_col; j++) {
@@ -284,6 +360,58 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
     //     printf("%s, %s, %s\n", pUser_in_recent[i].ID,
     //            pUser_in_recent[i].last_message, pUser_in_recent[i].time);
     // }
+}
+
+// 得到当前在线列表
+/*
+{
+    "length": int,
+    "list":[
+        {
+            "ID", str,
+            "IP": str
+        },
+        {
+
+        }
+    ]
+}
+*/
+// 得到当前在线用户，并转化为pData,len为传出参数
+uint8_t *get_group_list(uint32_t &len) {
+    // uint32_t len = 0;  // 数据包长度
+    Json::Value response;
+
+    int length = 0;
+    map<int, User_connect_info *>::iterator iter;
+    for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
+        length += 1;
+        Json::Value user;
+        int ID = iter->first;
+        User_connect_info *pUser_connect_info = iter->second;
+        char str[25];
+        sprintf(str, "%d", ID);
+
+        user["ID"] = str;
+        user["IP"] = pUser_connect_info->ipaddr;
+
+        printf("%s %s\n", user["ID"].asCString(), user["IP"].asCString());
+
+        response["list"].append(user);
+    }
+    uint8_t *pData = encode(CURENT_GROUP_LIST, response, len);
+    return pData;
+}
+
+// 发送当前在线列表
+void send_group_list(User_connect_info *pUser_connect_info) {
+    uint32_t len;
+    uint8_t *pData = get_group_list(len);
+    map<int, User_connect_info *>::iterator iter;
+    for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
+        User_connect_info *pUser_connect_info = iter->second;
+        send(pUser_connect_info->user_fd, pData, len, 0);
+    }
 }
 
 void user_login(const char *ID, const char *password,
@@ -355,14 +483,18 @@ void user_login(const char *ID, const char *password,
         send_friend_list(ID, pUser_connect_info);
         // sleep(1);
         send_recent_list(ID, pUser_connect_info);
+        // 登记连接信息
+        pUser_connect_info->user_id = atoi(ID);
+
+        uint32_t len = 0;
+        uint8_t *pData = get_group_list(len);
+        send(pUser_connect_info->user_fd, pData, len, 0);
     }
     delete[] pData;
 }
 
 void file_trans(const char *ID1, const char *ID2, const char *file_name,
                 User_connect_info *pUser_connect_info) {
-    int RESPTYPE = FILE_TRANS_NOTI;
-
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
     Json::Value response;
@@ -375,22 +507,24 @@ void file_trans(const char *ID1, const char *ID2, const char *file_name,
         response["ID2"] = ID2;
         response["IP1"] = pUser_connect_info->ipaddr;
         response["file_name"] = file_name;
-        response["status"] = status;
 
-        uint8_t *pData = encode(RESPTYPE, response, len);
-        send(pUser_connect_info->user_fd, pData, len, 0);
+        uint8_t *pData = encode(FILE_TRANS_NOTI, response, len);
+        // ID2的连接信息, 通知ID2有文件传输请求
+        User_connect_info *pUser_connect_info2 = ID2info[atoi(ID2)];
+        send(pUser_connect_info2->user_fd, pData, len, 0);
 
         delete[] pData;
+        // 给ID1发送 文件发送请求发送成功通知
         Json::Value response1;
         response1["status"] = status;
-        pData = encode(RESPTYPE, response, len);
+        pData = encode(FILE_TRANS_REP, response, len);
         send(pUser_connect_info->user_fd, pData, len, 0);
     } else {
         // 对方不在线
         status = EOPPOSITE_SIDE_OFFLINE;
         response["status"] = status;
 
-        uint8_t *pData = encode(RESPTYPE, response, len);
+        uint8_t *pData = encode(FILE_TRANS_REP, response, len);
         send(pUser_connect_info->user_fd, pData, len, 0);
     }
 
@@ -440,18 +574,18 @@ void user_register(const char *name, const char *password,
 
 void update_user_info(const char *ID, const char *name, int photo_id,
                       int sex_id, const char *tel, const char *description,
+                      const char *question, const char *answer,
                       User_connect_info *pUser_connect_info) {
     int RESPTYPE = CHANGE_MY_INF_REP;
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
     Json::Value response;
-
     char email[50] = {""};
     char value[512] = {0};
     sprintf(value,
             "Name='%s',Photo='%d',Sex='%d',Email='%s',Telephone='%s',"
-            "Description='%s'",
-            name, photo_id, sex_id, email, tel, description);
+            "Description='%s',Question='%s',Answer='%s'",
+            name, photo_id, sex_id, email, tel, description, question, answer);
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -620,9 +754,35 @@ void friend_add_req(const char *ID1, const char *ID2, int group_id,
     uint8_t *pData = encode(FRIEND_ADD_FIRST_REP, response, len);
     send(pUser_connect_info->user_fd, pData, len, 0);
 }
+
+int send_message_to_all(const char *buf, int len,
+                        User_connect_info *pUser_connect_info) {
+    // Message *message = new Message();
+    // strcpy(message->ID1, "12345");
+    // strcpy(message->ID2, "guxiao");
+    // strcpy(message->content, "hello");
+    // strcpy(message->time, "10:00");
+    map<int, User_connect_info *>::iterator iter;
+    for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
+        int id = iter->first;
+        User_connect_info *user = iter->second;
+        if (id == pUser_connect_info->user_id) {
+            // 不再给发送者发送消息
+            continue;
+        }
+        // response["ID1"] = message->ID1;
+        // response["ID2"] = message->ID2;
+        // response["content"] = message->content;
+        // response["time"] = message->time;
+        // TODO:response["state"]=
+        // uint8_t *pData = encode("请求头", response, len);
+        send(user->user_fd, buf, len, 0);
+    }
+}
+
 // 好友请求申请(第二次请求)
-void friend_add_req2(const char *ID1, const char *ID2, int group_id,int choose,
-                    User_connect_info *pUser_connect_info) {
+void friend_add_req2(const char *ID1, const char *ID2, int group_id, int choose,
+                     User_connect_info *pUser_connect_info) {
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -632,40 +792,37 @@ void friend_add_req2(const char *ID1, const char *ID2, int group_id,int choose,
     char field[50] = "Id1,Id2,Groupint";
     char table_name[50] = "Friend";
     int state;
-if (choose ==0)//接受
-{
-    sprintf(value, "'%s','%s','%s'", ID2, ID1, group_id);
-    state= insert_data(mysql, field, table_name, value);
-    sprintf(value, "'%s' and Id2 ='%s'", ID1, ID2);
-    state+=update_data(mysql,table_name,"Groupint=-Groupint","Id1",value);
-}
-else {
-    sprintf(value, "'%s' and Id2 ='%s'", ID1, ID2);
-    state=delete_data(mysql,table_name,"Id1",value);
-}
+    if (choose == 0)  //接受
+    {
+        sprintf(value, "'%s','%s','%d'", ID2, ID1, group_id);
+        state = insert_data(mysql, field, table_name, value);
+        sprintf(value, "'%s','%s'", ID1, ID2);
+        state = update_data(mysql, table_name, "Groupint=-Groupint", "Id1,Id2",
+                            value);
+    } else {
+        sprintf(value, "'%s','%s'", ID1, ID2);
+        state = delete_data(mysql, table_name, "Id1,Id2", value);
+    }
     close_connection(mysql);
-int status;
-Json::Value response;
-if(state==0){
-    status=NORMAL;
-}else {
-    status=EDATABASE_WRECK;
-}
-response["status"] = status;
-response["accept"]= choose;
+    int status;
+    Json::Value response;
+    if (state == 0) {
+        status = NORMAL;
+    } else {
+        status = EDATABASE_WRECK;
+    }
+    response["status"] = status;
+    response["accept"] = choose;
     uint32_t len = 0;
     uint8_t *pData = encode(FRIEND_ADD_SECOND_REP, response, len);
     User_connect_info *pUser_connect_info1 = ID2info[atoi(ID1)];
     send(pUser_connect_info1->user_fd, pData, len, 0);
 }
 
-
-
-
 // ID1请求给ID2发消息
 void send_message(const char *ID1, const char *ID2, const char *content,
                   User_connect_info *pUser1_connect_info) {
-    int RESPTYPE = MESSAGE_NOTI;
+    // int RESPTYPE = MESSAGE_NOTI;
     uint32_t len = 0;  // 数据包长度
     int status = 0;    // 服务器状态
     Json::Value response_to1, response_to2;
@@ -683,29 +840,84 @@ void send_message(const char *ID1, const char *ID2, const char *content,
         response_to2["content"] = content;
         response_to1["status"] = NORMAL;
 
-        // uint8_t *pData = encode(RESPTYPE, response_to1, len);
-        // send(pUser1_connect_info->user_fd, pData, len, 0);
-
-        // 防止内存泄漏
-        // delete[] pData;
-
-        uint8_t *pData = encode(RESPTYPE, response_to2, len);
+        uint8_t *pData = encode(MESSAGE_NOTI, response_to2, len);
         if (send(pUser2_connect_info->user_fd, pData, len, 0) > 0) {
             // 确定发送成功之后再插入数据
             insert_chat_content(ID1, ID2, content, 1);
+            delete[] pData;
+
+            // 给ID1发送 消息发送反馈
+            response_to1["status"] = NORMAL;
+            pData = encode(MESSAGE_REP, response_to1, len);
+            send(pUser1_connect_info->user_fd, pData, len, 0);
         }
+
     } else {
         // TODO:离线消息处理
         printf("%s 不在线\n", ID2);
         response_to1["status"] = EOPPOSITE_SIDE_OFFLINE;
-        uint8_t *pData = encode(RESPTYPE, response_to1, len);
+        uint8_t *pData = encode(MESSAGE_REP, response_to1, len);
         send(pUser1_connect_info->user_fd, pData, len, 0);
 
+        // 暂时插入数据库
         insert_chat_content(ID1, ID2, content, 0);
     }
     return;
 }
 
+/*修改好友分组*/
+void change_friend_group(const char *id1, const char *id2, int groupint,
+                         User_connect_info *pUser1_connect_info) {
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char value[505] = {0};
+    sprintf(value, "'%s','%s'", id1, id2);
+    char group[505] = {0};
+    sprintf(group, "GroupInt='%d'", groupint);
+    int state = update_data(mysql, "Friend", group, "Id1,Id2", value);
+    close_connection(mysql);
+    int status = NORMAL;
+    if (state == 0) {
+        status = NORMAL;
+    } else {
+        status = EDATABASE_WRECK;
+    }
+    uint32_t len = 0;
+    Json::Value response;
+    response["status"] = status;
+    uint8_t *pData = encode(FRIEND_GROUP_CHANGE_REP, response, len);
+    send(pUser1_connect_info->user_fd, pData, len, 0);
+}
+
+/*删除好友*/
+void delete_friend(const char *id1, const char *id2,
+                   User_connect_info *pUser1_connect_info) {
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char value[505] = {0};
+    sprintf(value, "'%s','%s'", id1, id2);
+    int state = delete_data(mysql, "Friend", "Id1,Id2", value);
+    sprintf(value, "'%s','%s'", id2, id1);
+    state += delete_data(mysql, "Friend", "Id1,Id2", value);
+    close_connection(mysql);
+    int status = NORMAL;
+    if (state == 0) {
+        status = NORMAL;
+    } else {
+        status = EDATABASE_WRECK;
+    }
+    uint32_t len = 0;
+    Json::Value response;
+    response["status"] = status;
+    uint8_t *pData = encode(FRIEND_DELETE_REP, response, len);
+    send(pUser1_connect_info->user_fd, pData, len, 0);
+}
 
 void *handClient(void *arg) {
     char buf[1024] = {0};
@@ -720,7 +932,7 @@ void *handClient(void *arg) {
     while (1) {
         if ((len = recv(confd, buf, sizeof(buf), 0)) == 0) {
             printf("用户 %d 已退出， Ip: %s\n", pUser_connect_info->user_id,
-            pUser_connect_info->ipaddr);
+                   pUser_connect_info->ipaddr);
             ID2info.erase(pUser_connect_info->user_id);
             delete[] pUser_connect_info;
             pthread_exit(NULL);
@@ -743,7 +955,7 @@ void *handClient(void *arg) {
 
             MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
             int server_id = pMsg->head.server_id;
-            
+
             printf("server_id = %d\n", server_id);
 
             if (server_id == REGISTER_REQ) {
@@ -771,26 +983,27 @@ void *handClient(void *arg) {
                 int group_id = pMsg->body["group_id"].asInt();
                 friend_add_req(ID1, ID2, group_id, pUser_connect_info);
             } else if (server_id == FRIEND_DELETE_REQ) {
-                // TODO:好友删除
+                // 好友删除
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
+                delete_friend(ID1, ID2, pUser_connect_info);
             } else if (server_id == FRIEND_VERIFY_REQ) {
-                // TODO:ID1处理ID2的添加申请
+                // ID1处理ID2的添加申请
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int choose = pMsg->body["choose"].asInt();
                 int group_id = pMsg->body["group_id"].asInt();
-                friend_add_req2(ID1,ID2,choose,group_id,pUser_connect_info);
-
+                friend_add_req2(ID1, ID2, group_id, choose, pUser_connect_info);
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
-                // TODO:分组改变
+                // 分组改变
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int group_id = pMsg->body["group_id"].asInt();
+                change_friend_group(ID1, ID2, group_id, pUser_connect_info);
             } else if (server_id == GET_FRIEND_INF_REQ) {
-                // TODO:好友信息请求
+                // 好友信息请求
                 const char *ID = pMsg->body["ID"].asCString();
-                send_friend_list(ID, pUser_connect_info);
+                send_friend_info(ID, pUser_connect_info);
             } else if (server_id == GET_MY_INF_REQ) {
                 // 自身信息
                 const char *ID = pMsg->body["ID"].asCString();
@@ -806,7 +1019,7 @@ void *handClient(void *arg) {
                 const char *answer = pMsg->body["answer"].asCString();
                 const char *description = pMsg->body["description"].asCString();
                 update_user_info(ID, name, photo_id, sex_id, tel, description,
-                                 pUser_connect_info);
+                                 question, answer, pUser_connect_info);
             } else if (server_id == MESSAGE_SEND) {
                 // 消息发送
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -814,15 +1027,18 @@ void *handClient(void *arg) {
                 const char *content = pMsg->body["content"].asCString();
                 send_message(ID1, ID2, content, pUser_connect_info);
             } else if (server_id == HISTORY_MESSAGE_REQ) {
+                // TODO:聊天记录
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
-                // 聊天记录
             } else if (server_id == FILE_TRANS_REQ) {
                 // 文件传输!!!!!!!!!!!!!!!!!!!!!!!!!
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *file_name = pMsg->body["file_name"].asCString();
                 file_trans(ID1, ID2, file_name, pUser_connect_info);
+            } else if (server_id == MESSAGE_GROUP_SEND) {
+                // 局域网聊天
+                send_message_to_all(buf, len, pUser_connect_info);
             }
         }
         // send(confd,buf,strlen(buf),0);

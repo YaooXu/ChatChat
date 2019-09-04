@@ -208,19 +208,6 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lastlog">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>320</y>
-     <width>91</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>上次登录日期</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="submit">
    <property name="geometry">
     <rect>
@@ -232,19 +219,6 @@
    </property>
    <property name="text">
     <string>修改</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lastlog_date">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>320</y>
-     <width>191</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
    </property>
   </widget>
   <widget class="QToolButton" name="photo">

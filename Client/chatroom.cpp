@@ -31,7 +31,7 @@ Chatroom::Chatroom(QTcpSocket *p_sock, QString tmp1, QString tmp2, QWidget *pare
     //设置背景颜色
     setAutoFillBackground(true);
     QPalette palette;
-    palette.setColor(QPalette::Background, QColor(Qt::darkCyan));
+    palette.setColor(QPalette::Background, QColor(Qt::lightGray));
     setPalette(palette);
 
 
@@ -64,7 +64,7 @@ void Chatroom::init_widget()//初始化相关的控件
     textBrowser = new QTextBrowser;
 
     //设置textBrowser背景颜色或图片
-//    textBrowser->setStyleSheet("background-image: url(:/src/img/2.jpg);");//背景设置为2.jpg
+  textBrowser->setStyleSheet("background-image: url(:/src/24.JPG);");//背景设置为2.jpg
     textBrowser->setMinimumSize(QSize(400, 300));
 
     QHBoxLayout *layout1 = new QHBoxLayout;
@@ -147,7 +147,7 @@ void Chatroom::init_widget()//初始化相关的控件
     pushButton = new QPushButton;
     pushButton->setText(tr("发送"));
 
-    QHBoxLayout *layout3 = new QHBoxLayout;
+   QHBoxLayout *layout3 = new QHBoxLayout;
     layout3->addWidget(lineEdit);
     layout3->addWidget(pushButton);
 

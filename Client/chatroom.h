@@ -2,10 +2,11 @@
 //#define CHATROOM_H
 #pragma once
 #include <QWidget>
-
+#include <QGridLayout>
 #include "my_include.h"
 #include "sliderdemo.h"
 
+#include<QTextEdit>
 
 
 class Chatroom : public QWidget
