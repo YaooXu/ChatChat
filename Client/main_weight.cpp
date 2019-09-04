@@ -6,8 +6,8 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
-//    init_main_Weight();
-//    setWindowFlags(Qt::WindowStaysOnBottomHint);
+    //    init_main_Weight();
+    //    setWindowFlags(Qt::WindowStaysOnBottomHint);
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
@@ -258,37 +258,29 @@ void Main_Weight::hand_message()
                 Map_Chatroom[tmp_ID2]->show();
             }
 
+
             Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
+            break;
         }
-
-        Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
-    }
-    case GET_MY_INF_REP:{
-        self_info = new info(p_socket);
-        connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
-        connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
-        connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
-        int length = 0;
-        User_info *pUser_info = decode2User_info(pMsg, len, length);
-        int x=pUser_info->photo_id;
-        QString name=pUser_info->name;
-        name="昵称:"+name;
-        p_User_name->setText(name);
-        QString mood=pUser_info->description;
-        mood="个性签名："+mood;
-        p_User_personal->setText(mood);
-        QString image_name;
-        image_name.sprintf(":/src/img/%d.png",x);
-        p_User_icon->setIcon(QPixmap(image_name));
-        self_info->updat_info(pUser_info);
-        break;
-    }
-    case CHANGE_MY_INF_REP:{
-        qDebug()<<pMsg->body["status"].asInt()<<"信息修改反馈";
-        if(pMsg->body["status"].asInt()==NORMAL){
-
-            QString msg="恭喜您已经修改成功";
-            QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
+        case GET_MY_INF_REP:{
+            self_info = new info(p_socket);
+            connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
+            connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
+            connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
+            int length = 0;
+            User_info *pUser_info = decode2User_info(pMsg, length);
+            int x=pUser_info->photo_id;
+            QString name=pUser_info->name;
+            name="昵称:"+name;
+            p_User_name->setText(name);
+            QString mood=pUser_info->description;
+            mood="个性签名："+mood;
+            p_User_personal->setText(mood);
+            QString image_name;
+            image_name.sprintf(":/src/img/%d.png",x);
+            p_User_icon->setIcon(QPixmap(image_name));
+            self_info->updat_info(pUser_info);
+            break;
         }
         case CHANGE_MY_INF_REP:{
             qDebug()<<pMsg->body["status"].asInt()<<"信息修改反馈";
@@ -298,7 +290,12 @@ void Main_Weight::hand_message()
                 QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
             }
             break;
+
         }
+        default:
+            break;
+
+
         }
         delete pMsg;
     }
