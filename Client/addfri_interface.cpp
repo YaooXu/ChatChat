@@ -20,7 +20,7 @@ void addfri_interface::on_pushButton_clicked()
 {
     QString ID2=ui->lineEdit->text();
     qDebug()<<ID2;
-    int groupID=ui->comboBox->currentIndex();
+    int groupID=ui->comboBox->currentIndex()+1;
     qDebug()<<groupID;
 
     uint32_t len=0;

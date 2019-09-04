@@ -42,7 +42,8 @@ SOURCES += \
     addfri_interface.cpp \
     info.cpp \
     repository.cpp \
-    group_chat.cpp
+    group_chat.cpp \
+    receive_addfri_interface.cpp
 
 HEADERS += \
     login.h \
@@ -61,7 +62,8 @@ HEADERS += \
     info.h \
     repository.h \
     my_include.h \
-    group_chat.h
+    group_chat.h \
+    receive_addfri_interface.h
 
 FORMS += \
         chatchat.ui \
@@ -76,7 +78,8 @@ FORMS += \
     addfri_interface.ui \
     info.ui \
     repository.ui \
-    group_chat.ui
+    group_chat.ui \
+    receive_addfri_interface.ui
 
 
 # Default rules for deployment.

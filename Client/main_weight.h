@@ -13,6 +13,10 @@
 #include "addfri_interface.h"
 #include "info.h"
 #include"group_chat.h"
+#include "receive_addfri_interface.h"
+#include "friendinfo_interface.h"
+#include "qdebug.h"
+
 
 namespace Ui {
 class main_Weight;
