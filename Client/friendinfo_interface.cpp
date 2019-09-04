@@ -29,7 +29,7 @@ friendinfo_interface::friendinfo_interface(QWidget *parent,QString fri_ID,int fr
         ui->label_sex->setText("女");
     }
     ui->label_description->setText(Description);
-    QString iconpath = QString(":/src/img/%1.jpg").arg(Icon);
+    QString iconpath = QString(":/src/img/%1.png").arg(Icon);
     ui->iconButton->setIcon(QPixmap(iconpath));
     ui->label_tel->setText(tel);
 }
