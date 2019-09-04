@@ -76,7 +76,7 @@
 #define FRIEND_ADD_FIRST_REP 5017 // 第一次告诉ID1申请是否发送成功
 #define FRIEND_ADD_SECOND_REP 5018 // 第二次告诉ID2对方是否接受
 
-#define MESSAGE_GROUP_NOTI 5019
+#define MESSAGE_GROUP_NOTI 5021
 // 服务器状态码
 #define NORMAL 0
 #define EPASSWORD_WRONG 1

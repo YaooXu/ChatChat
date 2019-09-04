@@ -790,14 +790,13 @@ void *handClient(void *arg) {
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
             } else if (server_id == FRIEND_VERIFY_REQ) {
-                // TODO:ID1处理ID2的添加申请
+                // ID1处理ID2的添加申请
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int choose = pMsg->body["choose"].asInt();
                 int group_id = pMsg->body["group_id"].asInt();
                
                 friend_add_req2(ID1,ID2,group_id,choose,pUser_connect_info);
-
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
                 // TODO:分组改变
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -830,9 +829,9 @@ void *handClient(void *arg) {
                 const char *content = pMsg->body["content"].asCString();
                 send_message(ID1, ID2, content, pUser_connect_info);
             } else if (server_id == HISTORY_MESSAGE_REQ) {
+                // 聊天记录
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
-                // 聊天记录
             } else if (server_id == FILE_TRANS_REQ) {
                 // 文件传输!!!!!!!!!!!!!!!!!!!!!!!!!
                 const char *ID1 = pMsg->body["ID1"].asCString();
