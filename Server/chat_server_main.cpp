@@ -638,8 +638,8 @@ int send_message_to_all(const char *buf, int len) {
 }
 
 // 好友请求申请(第二次请求)
-void friend_add_req2(const char *ID1, const char *ID2, int group_id, int choose,
-                     User_connect_info *pUser_connect_info) {
+void friend_add_req2(const char *ID1, const char *ID2, int group_id,int choose,
+                    User_connect_info *pUser_connect_info) {
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -649,32 +649,33 @@ void friend_add_req2(const char *ID1, const char *ID2, int group_id, int choose,
     char field[50] = "Id1,Id2,Groupint";
     char table_name[50] = "Friend";
     int state;
-    if (choose == 0)  //接受
-    {
-        sprintf(value, "'%s','%s','%s'", ID2, ID1, group_id);
-        state = insert_data(mysql, field, table_name, value);
-        sprintf(value, "'%s' and Id2 ='%s'", ID1, ID2);
-        state +=
-            update_data(mysql, table_name, "Groupint=-Groupint", "Id1", value);
-    } else {
-        sprintf(value, "'%s' and Id2 ='%s'", ID1, ID2);
-        state = delete_data(mysql, table_name, "Id1", value);
-    }
+if (choose ==0)//接受
+{
+    sprintf(value, "'%s','%s','%d'", ID2, ID1, group_id);
+    state= insert_data(mysql, field, table_name, value);
+    sprintf(value, "'%s','%s'", ID1, ID2);
+    state=update_data(mysql,table_name,"Groupint=-Groupint","Id1,Id2",value);
+}
+else {
+    sprintf(value, "'%s','%s'", ID1, ID2);
+    state=delete_data(mysql,table_name,"Id1,Id2",value);
+}
     close_connection(mysql);
-    int status;
-    Json::Value response;
-    if (state == 0) {
-        status = NORMAL;
-    } else {
-        status = EDATABASE_WRECK;
-    }
-    response["status"] = status;
-    response["accept"] = choose;
+int status;
+Json::Value response;
+if(state==0){
+    status=NORMAL;
+}else {
+    status=EDATABASE_WRECK;
+}
+response["status"] = status;
+response["accept"]= choose;
     uint32_t len = 0;
     uint8_t *pData = encode(FRIEND_ADD_SECOND_REP, response, len);
     User_connect_info *pUser_connect_info1 = ID2info[atoi(ID1)];
     send(pUser_connect_info1->user_fd, pData, len, 0);
 }
+
 
 // ID1请求给ID2发消息
 void send_message(const char *ID1, const char *ID2, const char *content,

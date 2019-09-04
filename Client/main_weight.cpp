@@ -46,7 +46,7 @@ void Main_Weight::init_main_Weight()
 {
 
     this->setWindowTitle("QQ");
-
+    user_name=lg->username;
     p_User_icon = new QPushButton();
     p_User_icon->setFixedSize(100, 100);
     //
@@ -55,7 +55,7 @@ void Main_Weight::init_main_Weight()
     p_User_icon->setIconSize(QSize(100, 100));
     connect(p_User_icon,SIGNAL(clicked()),this,SLOT(create_info()));
 
-
+    gp_chat=new group_chat(p_socket,userid,user_name);
     p_User_name = new QLabel();
     //p_User_name->setText("用户名");
     p_User_personal = new QLabel();
@@ -80,7 +80,7 @@ void Main_Weight::init_main_Weight()
     connect(p_Friend_Button, SIGNAL(clicked()), this, SLOT(on_clicked_Friend_Button()));
     p_Group_Button = new QPushButton();
     p_Group_Button->setText("群组");
-
+    connect(p_Group_Button,SIGNAL(clicked()),this,SLOT(on_clicked_group_button()));
     QHBoxLayout *two_Layout = new QHBoxLayout();
     two_Layout->addWidget(p_Message_Button);
     two_Layout->addWidget(p_Friend_Button);
@@ -244,6 +244,7 @@ void Main_Weight::hand_message()
             break;
         case MESSAGE_NOTI://服务器发送消息到客户端
         {
+
             Message *p_message = decode2Message(pMsg);
             qDebug() << "收到服务器的消息, ID1 = " << QString(p_message->ID1) << ", ID2 = "<< QString(p_message->ID2);
             qDebug() << "content: " << QString(p_message->content);
@@ -292,6 +293,18 @@ void Main_Weight::hand_message()
             break;
 
         }
+       case MESSAGE_GROUP_NOTI:{
+
+            QString ID1 = QString(pMsg->body["ID1"].asCString());
+            QString name=QString(pMsg->body["name"].asCString());
+            QString content=QString(pMsg->body["content"].asCString());
+            QString time=QString(pMsg->body["time"].asCString());
+
+
+            gp_chat->add_msg1(ID1, content);
+            break;
+        }
+        default:
         case FRIEND_ADD_FIRST_REP:{
             int status = pMsg->body["status"].asInt();
             if(status==0)
@@ -479,4 +492,8 @@ void Main_Weight::change_name(QString name){
     name="昵称："+name;
     p_User_name->setText(name);
 
+}
+void Main_Weight::on_clicked_group_button(){
+    qDebug()<<"aaaaaaaaaaa";
+    gp_chat->show();
 }
