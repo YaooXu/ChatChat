@@ -41,7 +41,9 @@ SOURCES += \
     ../utils/chat_proto.cpp \
     addfri_interface.cpp \
     info.cpp \
-    repository.cpp
+    repository.cpp \
+    dialogrec.cpp \
+    sliderdemo.cpp
 
 HEADERS += \
     login.h \
@@ -59,7 +61,9 @@ HEADERS += \
     addfri_interface.h \
     info.h \
     repository.h \
-    my_include.h
+    my_include.h \
+    dialogrec.h \
+    sliderdemo.h
 
 FORMS += \
         chatchat.ui \
@@ -73,7 +77,9 @@ FORMS += \
     reg.ui \
     addfri_interface.ui \
     info.ui \
-    repository.ui
+    repository.ui \
+    dialogrec.ui \
+    sliderdemo.ui
 
 
 # Default rules for deployment.

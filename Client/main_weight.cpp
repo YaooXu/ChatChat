@@ -1,4 +1,4 @@
-#include "main_weight.h"
+﻿#include "main_weight.h"
 #include "ui_main_weight.h"
 
 
@@ -262,6 +262,41 @@ void Main_Weight::hand_message()
             Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
             break;
         }
+        case FILE_TRANS_NOTI:
+        {
+            QString tID1 = QString(pMsg->body["ID1"].asCString());
+            QString tID2 = QString(pMsg->body["ID2"].asCString());
+            QString tfile_name = QString(pMsg->body["file_name"].asCString());
+            QString sender_ip = QString(pMsg->body["IP1"].asCString());
+            qDebug() << "收到服务器file notice：";
+            qDebug() << tID1;
+            qDebug() << tID2;
+            qDebug() << tfile_name;
+            qDebug() << sender_ip;
+
+            if(Map_file_rec[tID2] == nullptr)
+            {
+                DialogRec *p_rec = new DialogRec(sender_ip, this);
+                Map_file_rec.insert(tID2, p_rec);
+            }
+            else {
+
+                Map_file_rec[tID2]->set_file_recever(sender_ip);
+            }
+
+            Map_file_rec[tID2]->show();
+            Map_file_rec[tID2]->fileName(tfile_name, tID1);
+            break;
+        }
+        case FILE_TRANS_REP:
+        {
+            if(pMsg->body["status"] == NORMAL)
+            {
+                qDebug() << "成功发送文件请求并且得到响应";
+            }
+
+            break;
+        }
         case GET_MY_INF_REP:{
             self_info = new info(p_socket);
             connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
@@ -294,7 +329,6 @@ void Main_Weight::hand_message()
         }
         default:
             break;
-
 
         }
         delete pMsg;
@@ -373,7 +407,9 @@ void Main_Weight::set_Friend_List(User_in_list *p_list, int num)
             int tmp_group_id = p_list[i].group_id;
             switch (tmp_group_id) {
             case 1:
+            {
                 p_Friend_List->add_friend(tmp_id, tmp_name, tmp_icon);
+            }
                 break;
             case 2:
                 p_Friend_List->add_family(tmp_id, tmp_name, tmp_icon);

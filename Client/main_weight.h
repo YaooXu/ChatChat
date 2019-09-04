@@ -12,6 +12,7 @@
 #include "chatroom.h"
 #include "addfri_interface.h"
 #include "info.h"
+#include "dialogrec.h"
 
 
 namespace Ui {
@@ -30,15 +31,16 @@ public:
     QString username;
     QString usericon;
     QTcpSocket *p_socket;
+
     QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
     QMap<QString, QTcpSocket*> Map_Socket;//ID对应用户的socket指针
+    QMap<QString, DialogRec*> Map_file_rec;
 
     User_info *My_info;
 
     void init_main_Weight();
     void set_Message_List(User_in_recent *p_list, int num);
     void set_Friend_List(User_in_list *p_list, int num);
-
 
 
 
