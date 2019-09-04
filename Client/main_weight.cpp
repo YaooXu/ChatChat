@@ -133,6 +133,10 @@ void Main_Weight::init_main_Weight()
 
     main_Layout->addLayout(three_Layout);
     main_Layout->addLayout(four_Layout);
+    setAutoFillBackground(true);
+    QPalette palette;
+    palette.setColor(QPalette::Background, QColor(Qt::color0));
+    setPalette(palette);
 
     //main_Layout->setStretch(0, 2);
     //main_Layout->setStretch(1, 1);

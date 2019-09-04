@@ -63,6 +63,7 @@ void FriList::setLay_friend()
     layout_fri = new QVBoxLayout(friend_box);
     layout_fri->setMargin(45);
     layout_fri->setAlignment(Qt::AlignLeft);
+
     this->addItem((QWidget*)friend_box,QStringLiteral("我的好友"));
 }
 
