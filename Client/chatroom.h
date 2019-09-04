@@ -24,7 +24,7 @@ public:
     void sendData();
     QString getIP();
 
-
+    SliderDemo *tmp;
 
     QTcpSocket *p_chat_socket;
     QString uID1;

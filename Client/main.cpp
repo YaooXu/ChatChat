@@ -17,10 +17,7 @@ int main(int argc, char *argv[])
 //    SliderDemo *tmp = new SliderDemo();
 
 //    tmp->show();
-//    tmp->init_precess(1000);
-//    tmp->setprocess(400);
-
-
+//    tmp->slotStart();
 
     return a.exec();
 }

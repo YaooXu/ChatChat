@@ -7,8 +7,10 @@ SliderDemo::SliderDemo(QWidget *parent) :
 {
     ui->setupUi(this);
     m_timer = new QTimer(this);
-
-
+    ui->progressBar->setRange(0, 100);
+    ui->progressBar->setValue(0);
+    ui->btn_Start->hide();
+    ui->btn_Stop->hide();
 
     connect(ui->btn_Start, SIGNAL(clicked()), this, SLOT(slotStart()));
     connect(ui->btn_Stop, SIGNAL(clicked()), this, SLOT(slotStop()));
@@ -31,10 +33,7 @@ void SliderDemo::init_precess(int t_num)
 
 void SliderDemo::setprocess(int val)
 {
-
     ui->progressBar->setValue(val);
-
-
 }
 
 
@@ -53,11 +52,7 @@ void SliderDemo::slotProcessBar()
 //开启定时器
 void SliderDemo::slotStart()
 {
-    m_timer->start(100);
-//    for(int i = 0; i < 10000; i++)
-//    {
-//        ui->progressBar->setValue(i);
-//    }
+    m_timer->start(10);
 }
 
 //关闭定时器

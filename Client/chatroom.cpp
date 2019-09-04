@@ -34,6 +34,10 @@ Chatroom::Chatroom(QTcpSocket *p_sock, QString tmp1, QString tmp2, QWidget *pare
     palette.setColor(QPalette::Background, QColor(Qt::lightGray));
     setPalette(palette);
 
+//                tmp = new SliderDemo();
+//                tmp->setWindowFlags(Qt::WindowStaysOnTopHint);
+//                tmp->show();
+//                tmp->slotStart();
 
     init_widget();//初始化相关的控件
 }
@@ -318,6 +322,10 @@ void Chatroom::readPendingDatagrams()
         if(datagram == "1"){
             recip = sender;
             qDebug() << "接收端同意, 设置发送端的recip =" << recip;
+//            tmp = new SliderDemo();
+//            tmp->setWindowFlags(Qt::WindowStaysOnTopHint);
+//            tmp->show();
+//            tmp->slotStart();
             sendData();
             break;
         }
@@ -332,15 +340,11 @@ void Chatroom::readPendingDatagrams()
 void Chatroom::sendData()
 {
 
-    SliderDemo *tmp = new SliderDemo();
-    tmp->setWindowFlags(Qt::WindowStaysOnTopHint);
 
-    int maxnum = int(file->size() / 80);
-//    tmp->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowStaysOnTopHint);
-    tmp->init_precess(100);
+
+    int maxnum = int(file->size() / 8);
+
     qDebug() << "file size : " << file->size() << "maxnum = " << maxnum;
-
-//    tmp->show();
 
 
     int i = 0;
@@ -349,7 +353,7 @@ void Chatroom::sendData()
     {
 
 //        qDebug() << "正在发送文件" << *file;
-        QByteArray line = file->read(80);
+        QByteArray line = file->read(8);
         udpSocket->writeDatagram(line, line.length(), recip, 7755);
         i++;
 //        if(i*100/maxnum>current)
@@ -361,8 +365,9 @@ void Chatroom::sendData()
 
 
 //        }
-//        qDebug() << "sender发送消息" << line << zzz << line.size();
+
     }
+    tmp->close();
 
     qDebug() << "sendData()：文件发送完成!然后关闭文件";
     udpSocket->writeDatagram("#", 1, recip, 7755);
