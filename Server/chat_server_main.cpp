@@ -634,10 +634,10 @@ void friend_add_req2(const char *ID1, const char *ID2, int group_id,int choose,
     int state;
 if (choose ==0)//接受
 {
-    sprintf(value, "'%s','%s','%s'", ID2, ID1, group_id);
+    sprintf(value, "'%s','%s','%d'", ID2, ID1, group_id);
     state= insert_data(mysql, field, table_name, value);
     sprintf(value, "'%s' and Id2 ='%s'", ID1, ID2);
-    state+=update_data(mysql,table_name,"Groupint=-Groupint","Id1",value);
+    state=update_data(mysql,table_name,"Groupint=-Groupint","Id1",value);
 }
 else {
     sprintf(value, "'%s' and Id2 ='%s'", ID1, ID2);
@@ -780,7 +780,8 @@ void *handClient(void *arg) {
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int choose = pMsg->body["choose"].asInt();
                 int group_id = pMsg->body["group_id"].asInt();
-                friend_add_req2(ID1,ID2,choose,group_id,pUser_connect_info);
+               
+                friend_add_req2(ID1,ID2,group_id,choose,pUser_connect_info);
 
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
                 // TODO:分组改变
