@@ -208,7 +208,86 @@ void send_friend_list(const char *ID, User_connect_info *pUser_connect_info) {
     // }
 }
 
-void send_friend_info(const char *ID, User_connect_info *pUser_connect_info) {}
+void send_friend_info(const char *ID, User_connect_info *pUser_connect_info) {
+    int status, RESPTYPE = GET_FRIEND_INF_REP;
+    uint32_t len = 0;
+    int int_ID = atoi(ID);
+    Json::Value response;
+
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char sqlStr[1024] = {0};
+    sprintf(sqlStr,
+            "select "
+            "Id,Name,Photo,Sex,Email,Description,LastLoginTime,Telephone "
+            "from User where Id='%s'",
+            ID);
+    printf("%s\n", sqlStr);
+    if (mysql_query(mysql, sqlStr) != 0) {
+        // 查询失败,直接返回
+        printf("%s\n", mysql_error(mysql));
+        close_connection(mysql);
+        status = EDATABASE_WRECK;
+    } else {
+        // 查询成功
+        MYSQL_RES *result;
+        result = mysql_store_result(mysql);
+        close_connection(mysql);
+
+        if (result == NULL) {
+            // 未知错误
+            printf("%s\n", mysql_error(mysql));
+            status = EDATABASE_WRECK;
+        } else {
+            int num_row, num_col;
+            MYSQL_ROW mysql_row;
+            num_row = mysql_num_rows(result);
+            num_col = mysql_num_fields(result);
+
+            // 结构体数组长度
+            response["length"] = num_row;
+
+            Json::Value user;
+
+            for (int i = 0; i < num_row; i++) {
+                mysql_row = mysql_fetch_row(result);
+                for (int j = 0; j < num_col; j++) {
+                    printf("[Row %d,Col %d]==>[%s], is NULL:%d\n", i, j,
+                           mysql_row[j], mysql_row[j] == NULL);
+                }
+
+                user["ID"] = mysql_row[0];
+                user["photo_id"] =
+                    mysql_row[2] == NULL ? 0 : atoi(mysql_row[2]);
+                user["name"] = mysql_row[1];
+                // 当指针为NULL的时候直接赋值会段错误!
+                user["sex_id"] = mysql_row[3] == NULL ? 0 : atoi(mysql_row[3]);
+                user["tel"] = mysql_row[7] == NULL ? "" : mysql_row[7];
+                user["description"] = mysql_row[5] == NULL ? "" : mysql_row[5];
+                user["last_login_time"] =
+                    mysql_row[6] == NULL ? "" : mysql_row[6];
+                user["group_id"] = 0;
+                user["online"] = is_online(mysql_row[0]);
+                response["list"].append(user);
+            }
+        }
+    }
+    response["status"] = status;
+    uint8_t *pData = encode(RESPTYPE, response, len);
+    send(pUser_connect_info->user_fd, pData, len, 0);
+    // // 解包测试
+    // char *buf = (char *)pData;
+    // int num = 0;
+    // User_in_list *pUser_in_list = decode2User_list(buf, len, num);
+    // for (int i = 0; i < num; i++) {
+    //     printf("%s, %s, %d, %d, %d\n", pUser_in_list[i].name,
+    //            pUser_in_list[i].description, pUser_in_list[i].photo_id,
+    //            pUser_in_list[i].group_id, pUser_in_list[i].online);
+    // }
+}
 
 void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
     printf("开始准备最近联系人列表\n");
@@ -283,6 +362,58 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
     // }
 }
 
+// 得到当前在线列表
+/*
+{
+    "length": int,
+    "list":[
+        {
+            "ID", str,
+            "IP": str
+        },
+        {
+
+        }
+    ]
+}
+*/
+// 得到当前在线用户，并转化为pData,len为传出参数
+uint8_t *get_group_list(uint32_t &len) {
+    // uint32_t len = 0;  // 数据包长度
+    Json::Value response;
+
+    int length = 0;
+    map<int, User_connect_info *>::iterator iter;
+    for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
+        length += 1;
+        Json::Value user;
+        int ID = iter->first;
+        User_connect_info *pUser_connect_info = iter->second;
+        char str[25];
+        sprintf(str, "%d", ID);
+
+        user["ID"] = str;
+        user["IP"] = pUser_connect_info->ipaddr;
+
+        printf("%s %s\n", user["ID"].asCString(), user["IP"].asCString());
+
+        response["list"].append(user);
+    }
+    uint8_t *pData = encode(CURENT_GROUP_LIST, response, len);
+    return pData;
+}
+
+// 发送当前在线列表
+void send_group_list(User_connect_info *pUser_connect_info) {
+    uint32_t len;
+    uint8_t *pData = get_group_list(len);
+    map<int, User_connect_info *>::iterator iter;
+    for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
+        User_connect_info *pUser_connect_info = iter->second;
+        send(pUser_connect_info->user_fd, pData, len, 0);
+    }
+}
+
 void user_login(const char *ID, const char *password,
                 User_connect_info *pUser_connect_info) {
     int RESPTYPE = LOGIN_REP;
@@ -354,6 +485,10 @@ void user_login(const char *ID, const char *password,
         send_recent_list(ID, pUser_connect_info);
         // 登记连接信息
         pUser_connect_info->user_id = atoi(ID);
+
+        uint32_t len = 0;
+        uint8_t *pData = get_group_list(len);
+        send(pUser_connect_info->user_fd, pData, len, 0);
     }
     delete[] pData;
 }
@@ -730,6 +865,60 @@ void send_message(const char *ID1, const char *ID2, const char *content,
     return;
 }
 
+/*修改好友分组*/
+void change_friend_group(const char *id1, const char *id2, int groupint,
+                         User_connect_info *pUser1_connect_info) {
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char value[505] = {0};
+    sprintf(value, "'%s','%s'", id1, id2);
+    char group[505] = {0};
+    sprintf(group, "GroupInt='%d'", groupint);
+    int state = update_data(mysql, "Friend", group, "Id1,Id2", value);
+    close_connection(mysql);
+    int status = NORMAL;
+    if (state == 0) {
+        status = NORMAL;
+    } else {
+        status = EDATABASE_WRECK;
+    }
+    uint32_t len = 0;
+    Json::Value response;
+    response["status"] = status;
+    uint8_t *pData = encode(FRIEND_GROUP_CHANGE_REP, response, len);
+    send(pUser1_connect_info->user_fd, pData, len, 0);
+}
+
+/*删除好友*/
+void delete_friend(const char *id1, const char *id2,
+                   User_connect_info *pUser1_connect_info) {
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char value[505] = {0};
+    sprintf(value, "'%s','%s'", id1, id2);
+    int state = delete_data(mysql, "Friend", "Id1,Id2", value);
+    sprintf(value, "'%s','%s'", id2, id1);
+    state += delete_data(mysql, "Friend", "Id1,Id2", value);
+    close_connection(mysql);
+    int status = NORMAL;
+    if (state == 0) {
+        status = NORMAL;
+    } else {
+        status = EDATABASE_WRECK;
+    }
+    uint32_t len = 0;
+    Json::Value response;
+    response["status"] = status;
+    uint8_t *pData = encode(FRIEND_DELETE_REP, response, len);
+    send(pUser1_connect_info->user_fd, pData, len, 0);
+}
+
 void *handClient(void *arg) {
     char buf[1024] = {0};
     struct User_connect_info *pUser_connect_info =
@@ -794,26 +983,27 @@ void *handClient(void *arg) {
                 int group_id = pMsg->body["group_id"].asInt();
                 friend_add_req(ID1, ID2, group_id, pUser_connect_info);
             } else if (server_id == FRIEND_DELETE_REQ) {
-                // TODO:好友删除
+                // 好友删除
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
+                delete_friend(ID1, ID2, pUser_connect_info);
             } else if (server_id == FRIEND_VERIFY_REQ) {
                 // ID1处理ID2的添加申请
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int choose = pMsg->body["choose"].asInt();
                 int group_id = pMsg->body["group_id"].asInt();
-
                 friend_add_req2(ID1, ID2, group_id, choose, pUser_connect_info);
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
-                // TODO:分组改变
+                // 分组改变
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int group_id = pMsg->body["group_id"].asInt();
+                change_friend_group(ID1, ID2, group_id, pUser_connect_info);
             } else if (server_id == GET_FRIEND_INF_REQ) {
-                // TODO:好友信息请求
+                // 好友信息请求
                 const char *ID = pMsg->body["ID"].asCString();
-                send_friend_list(ID, pUser_connect_info);
+                send_friend_info(ID, pUser_connect_info);
             } else if (server_id == GET_MY_INF_REQ) {
                 // 自身信息
                 const char *ID = pMsg->body["ID"].asCString();
@@ -837,7 +1027,7 @@ void *handClient(void *arg) {
                 const char *content = pMsg->body["content"].asCString();
                 send_message(ID1, ID2, content, pUser_connect_info);
             } else if (server_id == HISTORY_MESSAGE_REQ) {
-                // 聊天记录
+                // TODO:聊天记录
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
             } else if (server_id == FILE_TRANS_REQ) {
@@ -847,6 +1037,7 @@ void *handClient(void *arg) {
                 const char *file_name = pMsg->body["file_name"].asCString();
                 file_trans(ID1, ID2, file_name, pUser_connect_info);
             } else if (server_id == MESSAGE_GROUP_SEND) {
+                // 局域网聊天
                 send_message_to_all(buf, len, pUser_connect_info);
             }
         }
