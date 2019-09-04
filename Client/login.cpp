@@ -15,7 +15,8 @@ Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     connect(regBtn,SIGNAL(clicked()), this, SLOT(change_reg()));
     //    connect*()
 
-    p_login_socket->connectToHost("127.0.0.1", 5117);
+    p_login_socket->connectToHost("182.92.193.104", 5117);
+//    p_login_socket->connectToHost("127.0.0.1", 5117);
     connect(p_login_socket, SIGNAL(connected()), this, SLOT(handconnect()));
 }
 
@@ -79,7 +80,7 @@ void Login::init_Login()
     setAutoFillBackground(true);
     QPalette palette;
     //palette.setColor(QPalette::Background, QColor(Qt::blue));
-    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/img/1.png")));//设置登陆背景
+    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/24.JPG")));//设置登陆背景
     setPalette(palette);
 }
 

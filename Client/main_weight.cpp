@@ -94,6 +94,8 @@ void Main_Weight::init_main_Weight()
     qDebug() << "Message初始化";
     //    on_clicked_Message_Button();
 
+    p_Friend_List = new FriList(p_socket, userid);
+
 
     three_Layout->addWidget(p_Message_List);
 
@@ -185,8 +187,8 @@ void Main_Weight::create_Chatroom_whz()
 void Main_Weight::hand_message()
 {
     // 解码需要用到长度,所以只能用sock.read
-    char recvBuf[1024];
-    int len = p_socket->read(recvBuf, 1024);
+    char recvBuf[10000];
+    int len = p_socket->read(recvBuf, 10000);
 
     qDebug() <<"收到服务器消息,长度为" << len;
 
@@ -256,7 +258,9 @@ void Main_Weight::hand_message()
                 Map_Chatroom[tmp_ID2]->show();
             }
 
+
             Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
+            break;
         }
         case GET_MY_INF_REP:{
             self_info = new info(p_socket);
@@ -266,8 +270,12 @@ void Main_Weight::hand_message()
             int length = 0;
             User_info *pUser_info = decode2User_info(pMsg, length);
             int x=pUser_info->photo_id;
-            p_User_name->setText(pUser_info->name);
-            p_User_personal->setText(pUser_info->description);
+            QString name=pUser_info->name;
+            name="昵称:"+name;
+            p_User_name->setText(name);
+            QString mood=pUser_info->description;
+            mood="个性签名："+mood;
+            p_User_personal->setText(mood);
             QString image_name;
             image_name.sprintf(":/src/img/%d.png",x);
             p_User_icon->setIcon(QPixmap(image_name));
@@ -282,14 +290,19 @@ void Main_Weight::hand_message()
                 QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
             }
             break;
+
         }
+        default:
+            break;
+
+
         }
         delete pMsg;
     }
     return;
 }
 
-
+//Todo:list按照time排序
 void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
 {
     //先解除连接，清空list
@@ -308,7 +321,8 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
         QWidget *tmp_three_widget = new QWidget();
         QVBoxLayout *three_Item_Layout = new QVBoxLayout();
         tmp_three_widget->setLayout(three_Item_Layout);
-        QString tmp_id(QString(p_list->ID));
+        QString tmp_id(QString(p_list[i].ID));
+        qDebug() << "message id = " << tmp_id;
         //        QString str(QString(p_list->)); //设置用户名
         p_Message_Item[i] = new QToolButton();
         //        p_Message_Item[i]->setSizeHint(QSize(400, 100));
@@ -411,10 +425,12 @@ void Main_Weight::change_main_photo(int x){
 
 }
 void Main_Weight::change_description(QString des){
+    des="个性签名："+des;
     p_User_personal->setText(des);
     //qDebug()<<"sad";
 }
 void Main_Weight::change_name(QString name){
+    name="昵称："+name;
     p_User_name->setText(name);
 
 }
