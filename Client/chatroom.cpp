@@ -367,7 +367,7 @@ void Chatroom::sendData()
 //        }
 
     }
-    tmp->close();
+//    tmp->close();
 
     qDebug() << "sendData()：文件发送完成!然后关闭文件";
     udpSocket->writeDatagram("#", 1, recip, 7755);

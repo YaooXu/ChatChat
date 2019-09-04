@@ -19,7 +19,11 @@ class FriList : public QToolBox
 {
     Q_OBJECT
 public:
-    FriList(QTcpSocket *p_sock, QString uID, QWidget *parent=0, Qt::WindowFlags f=0);
+    QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
+    QMap<QString, QTcpSocket*> Map_Socket;//ID对应用户的socket指针
+
+
+    FriList(QTcpSocket *p_sock, QString uID, QWidget *parent=0,Qt::WindowFlags f=0);
 
     void setLay_friend();   //好友页布局
     void setLay_family();
@@ -33,7 +37,6 @@ public:
     void add_blacklist(QString id,QString name,QString iconc);   //添加黑名单
     void clear_list();
     bool is_empty();
-    QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
 
     QString userid;
     QTcpSocket *p_Friend_sock = nullptr;

@@ -23,6 +23,8 @@ public:
 private slots:
     void on_pushButton_2_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::group_chat *ui;
     QTcpSocket *ptr_socket;

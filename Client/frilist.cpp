@@ -125,7 +125,7 @@ void FriList::add_friend(QString id, QString user, QString icon)//通过此类�
     });
 
     //通过点击创建聊天窗口
-//    connect(tempButton, SIGNAL(clicked()), this, SLOT(create_Chatroom(tempButton->objectName())));
+    //    connect(tempButton, SIGNAL(clicked()), this, SLOT(create_Chatroom(tempButton->objectName())));
     connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
 
@@ -240,9 +240,18 @@ void FriList::add_classmate(QString id, QString name, QString icon)
 
 void FriList::create_Chatroom(QString uID)
 {
+//    qDebug() << "准备创建聊天室，ID1 = " << userid << ", ID2 = " << uID;
+    if(Map_Chatroom[uID] == nullptr)
+    {
         Chatroom *p_tmp = new Chatroom(p_Friend_sock, userid, uID);
+        Map_Chatroom.insert(uID, p_tmp);//创建了一个聊天窗口，插入map
+        p_tmp->setWindowTitle("Chatroom:" + userid + " to " + uID);
         p_tmp->resize(700, 600);
         p_tmp->show();
+    }
+    else {
+        Map_Chatroom[uID]->show();
+    }
 }
 
 void FriList::clear_list()

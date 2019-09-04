@@ -42,7 +42,7 @@ void Main_Weight::log_in(){
     connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
     if(p_socket->isOpen())
     {
-        Map_Socket.insert(userid, p_socket);
+        p_Friend_List->Map_Socket.insert(userid, p_socket);
         qDebug() << "main:success connect socket!";
     }
 }
@@ -175,16 +175,16 @@ void Main_Weight::create_Chatroom(QString uID)
 {
     //Todo:如果之前的chatroom关闭了，要将Map_Chatroom[uID]设置为null
     qDebug() << "准备创建聊天室，ID1 = " << userid << ", ID2 = " << uID;
-    if(Map_Chatroom[uID] == nullptr)
+    if(p_Friend_List->Map_Chatroom[uID] == nullptr)
     {
         Chatroom *p_tmp = new Chatroom(p_socket, userid, uID);
-        Map_Chatroom.insert(uID, p_tmp);//创建了一个聊天窗口，插入map
+        p_Friend_List->Map_Chatroom.insert(uID, p_tmp);//创建了一个聊天窗口，插入map
         p_tmp->setWindowTitle("Chatroom:" + userid + " to " + uID);
         p_tmp->resize(700, 600);
         p_tmp->show();
     }
     else {
-        Map_Chatroom[uID]->show();
+        p_Friend_List->Map_Chatroom[uID]->show();
     }
 }
 
@@ -260,16 +260,16 @@ void Main_Weight::hand_message()
             //注意：message是好友发给ID1的，所以userid为ID2，而好友为ID1
             QString tmp_ID2 = QString(p_message->ID1);
             QString tmp_content = QString(p_message->content);
-            if(Map_Chatroom[tmp_ID2] == nullptr)
+            if(p_Friend_List->Map_Chatroom[tmp_ID2] == nullptr)
             {
                 create_Chatroom(tmp_ID2);
             }
             else {
-                Map_Chatroom[tmp_ID2]->show();
+                p_Friend_List->Map_Chatroom[tmp_ID2]->show();
             }
 
 
-            Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
+            p_Friend_List->Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
             break;
         }
         case FILE_TRANS_NOTI:
@@ -343,7 +343,7 @@ void Main_Weight::hand_message()
             break;
 
         }
-       case MESSAGE_GROUP_SEND:{
+        case MESSAGE_GROUP_SEND:{
             QString ID1 = QString(pMsg->body["ID1"].asCString());
             QString name=QString(pMsg->body["name"].asCString());
             QString content=QString(pMsg->body["content"].asCString());
@@ -357,11 +357,11 @@ void Main_Weight::hand_message()
             int status = pMsg->body["status"].asInt();
             if(status==0)
             {
-                QMessageBox::warning(this,"title","成功发送");
+                QMessageBox::information(this,"title","成功发送");
             }
             else {
                 {
-                    QMessageBox::warning(this,"title","发送失败");
+                    QMessageBox::information(this,"title","发送失败");
                 }
             }
             break;
@@ -381,12 +381,12 @@ void Main_Weight::hand_message()
             if(result==0)
             {
                 p_Friend_Button->click();
-                QMessageBox::warning(this,"title","您和对方已是好友");
+                QMessageBox::information(this,"title","您和对方已是好友");
             }
             else
             {
                 p_Friend_Button->click();
-                QMessageBox::warning(this,"title","对方拒绝了您的申请");
+                QMessageBox::information(this,"title","对方拒绝了您的申请");
             }
             break;
 
@@ -408,7 +408,7 @@ void Main_Weight::hand_message()
             int status = pMsg->body["status"].asInt();
             if(status!=0)
             {
-                QMessageBox::warning(this,"title","对方不在线，将发送离线消息");
+                QMessageBox::information(this,"title","对方不在线，将发送离线消息");
             }
             break;
         }
@@ -416,12 +416,12 @@ void Main_Weight::hand_message()
             int status = pMsg->body["status"].asInt();
             if(status==0)
             {
-                QMessageBox::warning(this,"title","删除成功");
+                QMessageBox::information(this,"title","删除成功");
                 p_Friend_Button->click();
             }
             else
             {
-                QMessageBox::warning(this,"title","删除失败");
+                QMessageBox::information(this,"title","删除失败");
                 p_Friend_Button->click();
             }
             break;
@@ -430,20 +430,21 @@ void Main_Weight::hand_message()
             int status = pMsg->body["status"].asInt();
             if(status==0)
             {
-                QMessageBox::warning(this,"title","改变分组成功");
+                QMessageBox::information(this,"title","改变分组成功");
                 p_Friend_Button->click();
             }
             else
             {
-                QMessageBox::warning(this,"title","改变分组失败");
+                QMessageBox::information(this,"title","改变分组失败");
                 p_Friend_Button->click();
             }
             break;
         }
         case CURENT_GROUP_LIST:{
             int num=pMsg->body["length"].asInt();
+            qDebug() << num;
             gp_chat->input_info(num);
-           //	gp_chat->ui->p_textBrowser->append("IP为："+IP+" ID为："+ID);
+            //	gp_chat->ui->p_textBrowser->append("IP为："+IP+" ID为："+ID);
             for(int i=0;i<num;i++){
                 QString ID = QString(pMsg->body["list"][i]["ID"].asCString());
                 QString IP = QString(pMsg->body["list"][i]["IP"].asCString());
@@ -470,7 +471,7 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
     p_Message_List->clear();
 
     QIcon aIcon;//假设头像
-    aIcon.addFile(":/src/img/1.png");
+    //aIcon.addFile(":/src/img/1.png");
 
     for (int i = 0; i < num; i++)
     {
@@ -478,7 +479,14 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
         QVBoxLayout *three_Item_Layout = new QVBoxLayout();
         tmp_three_widget->setLayout(three_Item_Layout);
         QString tmp_id(QString(p_list[i].ID));
+        int photo_ID(int(p_list[i].photo_id));
+
+        QString name_id;
+        name_id.sprintf(":/src/img/%d.png",photo_ID);
+        qDebug()<<name_id;
+        // aIcon.addFile(":/src/img/%1.png").arg(photo_ID);
         qDebug() << "message id = " << tmp_id;
+        //        int photo_ID=p_list[i].photo_id;
         //        QString str(QString(p_list->)); //设置用户名
         p_Message_Item[i] = new QToolButton();
         //        p_Message_Item[i]->setSizeHint(QSize(400, 100));
@@ -486,7 +494,7 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
         p_Message_Item[i]->setText(tmp_id);    //设置文字标签
         //        QString imagename;
         //        imagename.sprintf(":/src/img/%d.png", p_list->);//设置头像
-        p_Message_Item[i]->setIcon(aIcon);     //设置图标
+        p_Message_Item[i]->setIcon(QPixmap(name_id));     //设置图标
         p_Message_Item[i]->setIconSize(QSize(100, 100));//设置p_Message_Item大小和图像一致
         p_Message_Item[i]->setAutoRaise(true);//设置p_Message_Item自动浮起界面风格
         p_Message_Item[i]->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);//设置p_Message_Item文字在图像旁边
