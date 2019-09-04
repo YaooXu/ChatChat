@@ -39,16 +39,6 @@
     <string>在线用户：</string>
    </property>
   </widget>
-  <widget class="QListWidget" name="listWidget">
-   <property name="geometry">
-    <rect>
-     <x>350</x>
-     <y>50</y>
-     <width>171</width>
-     <height>321</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QLineEdit" name="pre_text">
    <property name="geometry">
     <rect>
@@ -114,6 +104,16 @@
      <x>30</x>
      <y>50</y>
      <width>301</width>
+     <height>321</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTextBrowser" name="p_textBrowser">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>50</y>
+     <width>181</width>
      <height>321</height>
     </rect>
    </property>

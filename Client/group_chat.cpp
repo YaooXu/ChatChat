@@ -1,13 +1,15 @@
 #include "group_chat.h"
 #include "ui_group_chat.h"
 
-group_chat::group_chat(QTcpSocket *p_socket,QString temp,QString name,QWidget *parent) :
+group_chat::group_chat(QTcpSocket *p_socket,QString temp,QString p_name,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::group_chat)
 {
     ui->setupUi(this);
     uID1=temp;
-    name=name;
+    name=p_name;
+    ui->lineEdit_3->setText(name);
+    //qDebug()<<p_name<<name<<"3333333333333333";
     this->ptr_socket = p_socket;
     setWindowTitle("多人聊天室");
     setWindowIcon(QPixmap(":/src/img/Chat_Icon.png"));
@@ -33,6 +35,7 @@ void group_chat::on_pushButton_2_clicked()//将我的消息传给服务器
         uint32_t len = 0;
         Json::Value message;
         message["ID1"] = uID1.toStdString().c_str();
+        //qDebug()<<name<<"4444444444444444";
         message["name"]=name.toStdString().c_str();
         message["content"] = ui->pre_text->text().toStdString().c_str();
         message["time"]=QDateTime::currentDateTime().toString("yyyy-MM-dd hh:ss:ss").toStdString().c_str();
@@ -58,4 +61,11 @@ void group_chat:: add_msg1(QString delivername, QString msg)//向textBrowser添�
 
     //当消息textBrowser中消息过多出现滚动条时，自动滚动到最下方
 //    textBrowser->verticalScrollBar()->setValue(textBrowser->verticalScrollBar()->maximum());
+}
+void group_chat::add_info(QString ID, QString IP){
+    ui->p_textBrowser->append("IP为："+IP+" ID为："+ID);
+}
+void group_chat::input_info(int n){
+        QString d=QString::number(n);
+     ui->p_textBrowser->append("当前在线人数为："+d);
 }

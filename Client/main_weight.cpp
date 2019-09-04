@@ -401,6 +401,16 @@ void Main_Weight::hand_message()
             }
             break;
         }
+        case CURENT_GROUP_LIST:{
+            int num=pMsg->body["length"].asInt();
+            gp_chat->input_info(num);
+           //	gp_chat->ui->p_textBrowser->append("IP为："+IP+" ID为："+ID);
+            for(int i=0;i<num;i++){
+                QString ID = QString(pMsg->body["list"][i]["ID"].asCString());
+                QString IP = QString(pMsg->body["list"][i]["IP"].asCString());
+                gp_chat->add_info(ID,IP);
+            }
+        }
         default:
             break;
         }

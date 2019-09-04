@@ -15,6 +15,8 @@ public:
     explicit group_chat(QTcpSocket *p_socket,QString uID1,QString name,QWidget *parent = nullptr);
     ~group_chat();
     void add_msg1(QString delivername, QString msg);
+    void add_info(QString ID,QString IP);
+    void input_info(int n);
     QString uID1;
     QString name;
    // QString uID2;

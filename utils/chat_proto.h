@@ -77,6 +77,8 @@
 #define FRIEND_ADD_SECOND_REP 5018 // 第二次告诉ID2对方是否接受
 
 #define MESSAGE_GROUP_NOTI 5021
+#define CURENT_GROUP_LIST 5022
+
 // 服务器状态码
 #define NORMAL 0
 #define EPASSWORD_WRONG 1
