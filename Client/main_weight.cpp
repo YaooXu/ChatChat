@@ -206,6 +206,8 @@ void Main_Weight::hand_message()
 
     int server_id = pMsg->head.server_id;
 
+    qDebug()<<server_id;
+
     switch (server_id) {
     case REGISTER_REP://处理注册成功信号
 
@@ -229,6 +231,7 @@ void Main_Weight::hand_message()
             Map_Chatroom[tmp_ID2]->show();
         }
         Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
+        break;
     }
     case GET_MY_INF_REP:{
         self_info = new info(p_socket);
@@ -249,6 +252,55 @@ void Main_Weight::hand_message()
             QString msg="恭喜您已经修改成功";
             QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
         }
+        break;
+    }
+    case FRIEND_ADD_FIRST_REP:{
+        int status = pMsg->body["status"].asInt();
+        if(status==0)
+        {
+            QMessageBox::warning(this,"title","成功发送");
+        }
+        else {
+            {
+                QMessageBox::warning(this,"title","发送失败");
+            }
+        }
+        break;
+    }
+    case FRIEND_ADD_NOTI:{
+        int length=0;
+        User_in_list *p_message = decode2User_list(pMsg,len,length);
+        QString claimer_ID=p_message->ID;
+        QString claimer_Name=p_message->name;
+        receive_addfri_interface *receive_addfri = new receive_addfri_interface(nullptr,userid,claimer_ID,claimer_Name,p_socket);
+        receive_addfri->show();
+        break;
+    }
+    case FRIEND_ADD_SECOND_REP:{
+        int status = pMsg->body["status"].asInt();
+        int result = pMsg->body["accept"].asInt();    //协议中没有留出，之后要在协议里加
+        if(result==0)
+        {
+            QMessageBox::warning(this,"title","您和对方已是好友");
+        }
+        else
+        {
+            QMessageBox::warning(this,"title","对方拒绝了您的申请");
+        }
+        break;
+
+    }
+    case GET_FRIEND_INF_REP:{
+        int length=0;
+        User_in_list *p_message = decode2User_list(pMsg,len,length);
+        QString ID = p_message->ID;
+        int Icon=p_message->photo_id;
+        QString Name = p_message->name;
+        int Sex = p_message->sex_id;
+        QString Description = p_message->description;
+
+        friendinfo_interface *friendinfo = new friendinfo_interface(nullptr,ID,Icon,Name,Sex,Description);
+        friendinfo->show();
         break;
     }
     }
