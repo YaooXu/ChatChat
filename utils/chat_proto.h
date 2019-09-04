@@ -183,6 +183,7 @@ public:
     char *ID;
     char *last_message;
     char *time;
+    int photo_id;
 };
 
 // 查询自身时返回的结构体

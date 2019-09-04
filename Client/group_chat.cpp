@@ -63,9 +63,15 @@ void group_chat:: add_msg1(QString delivername, QString msg)//向textBrowser添�
 //    textBrowser->verticalScrollBar()->setValue(textBrowser->verticalScrollBar()->maximum());
 }
 void group_chat::add_info(QString ID, QString IP){
-    ui->p_textBrowser->append("IP为："+IP+" ID为："+ID);
+    ui->p_textBrowser->append("IP："+IP+" ID："+ID);
 }
 void group_chat::input_info(int n){
+        ui->p_textBrowser->clear();
         QString d=QString::number(n);
      ui->p_textBrowser->append("当前在线人数为："+d);
+}
+
+void group_chat::on_pushButton_clicked()
+{
+    this->close();
 }

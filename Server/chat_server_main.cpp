@@ -301,12 +301,14 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
     }
     mysql_connect(mysql);
     char sqlStr[1024] = {0};
-    sprintf(sqlStr,
-            "select tem.id,tem.Content,tem.Time FROM ((select Id1 as "
-            "id,Content,Time  from ChatContent where Id2='%s') union (select "
-            "Id2 as id,Content,Time  from ChatContent where Id1='%s')  order "
-            "by Time desc)as tem group by tem.id",
-            ID, ID);
+    sprintf(
+        sqlStr,
+        "select temp.id,temp.Content,temp.Time,User.Photo from (select "
+        "tem.id,tem.Content,tem.Time FROM ((select Id1 as id,Content,Time  "
+        "from ChatContent where Id2='%s') union (select Id2 as "
+        "id,Content,Time  from ChatContent where Id1='%s')  order by Time "
+        "desc)as tem group by tem.id) as temp join User where temp.id=User.id",
+        ID, ID);
     printf("%s\n", sqlStr);
     Json::Value user;
     Json::Value response;
@@ -344,6 +346,7 @@ void send_recent_list(const char *ID, User_connect_info *pUser_connect_info) {
             user["ID"] = mysql_row[0] == NULL ? "xxxxxx" : mysql_row[0];
             user["last_message"] = mysql_row[1] == NULL ? "" : mysql_row[1];
             user["time"] = mysql_row[2] == NULL ? "" : mysql_row[2];
+            user["photo_id"] = atoi(mysql_row[3]) == 0 ? 1 : atoi(mysql_row[3]);
             response["list"].append(user);
         }
     } while (0);
@@ -399,18 +402,19 @@ uint8_t *get_group_list(uint32_t &len) {
 
         response["list"].append(user);
     }
+    response["length"] = length;
     uint8_t *pData = encode(CURENT_GROUP_LIST, response, len);
     return pData;
 }
 
 // 发送当前在线列表
-void send_group_list(User_connect_info *pUser_connect_info) {
+void send_group_list() {
     uint32_t len;
     uint8_t *pData = get_group_list(len);
     map<int, User_connect_info *>::iterator iter;
     for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
-        User_connect_info *pUser_connect_info = iter->second;
-        send(pUser_connect_info->user_fd, pData, len, 0);
+        User_connect_info *tmp = iter->second;
+        send(tmp->user_fd, pData, len, 0);
     }
 }
 
@@ -486,9 +490,7 @@ void user_login(const char *ID, const char *password,
         // 登记连接信息
         pUser_connect_info->user_id = atoi(ID);
 
-        uint32_t len = 0;
-        uint8_t *pData = get_group_list(len);
-        send(pUser_connect_info->user_fd, pData, len, 0);
+        send_group_list();
     }
     delete[] pData;
 }
@@ -851,7 +853,6 @@ void send_message(const char *ID1, const char *ID2, const char *content,
             pData = encode(MESSAGE_REP, response_to1, len);
             send(pUser1_connect_info->user_fd, pData, len, 0);
         }
-
     } else {
         // TODO:离线消息处理
         printf("%s 不在线\n", ID2);
@@ -935,6 +936,8 @@ void *handClient(void *arg) {
                    pUser_connect_info->ipaddr);
             ID2info.erase(pUser_connect_info->user_id);
             delete[] pUser_connect_info;
+            // 向所有人再次更新在线列表
+            send_group_list();
             pthread_exit(NULL);
         } else if (len == -1) {
             // TODO: 异常解决

@@ -35,8 +35,8 @@ public:
     QString username;
     QString usericon;
     QTcpSocket *p_socket;
-    QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
-    QMap<QString, QTcpSocket*> Map_Socket;//ID对应用户的socket指针
+//    QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
+//    QMap<QString, QTcpSocket*> Map_Socket;//ID对应用户的socket指针
 
 
     User_info *My_info;
