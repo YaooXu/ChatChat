@@ -410,7 +410,7 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
     p_Message_List->clear();
 
     QIcon aIcon;//假设头像
-    aIcon.addFile(":/src/img/1.jpg");
+    aIcon.addFile(":/src/img/1.png");
 
     for (int i = 0; i < num; i++)
     {
