@@ -6,13 +6,8 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
-<<<<<<< HEAD
 //    init_main_Weight();
 //    setWindowFlags(Qt::WindowStaysOnBottomHint);
-=======
-    //    init_main_Weight();
-    //    setWindowFlags(Qt::WindowStaysOnBottomHint);
->>>>>>> 30c60265ad24d4b6f4d26783f8fd83baeefcf6fb
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
@@ -32,23 +27,6 @@ Main_Weight::~Main_Weight()
 void Main_Weight::log_in(){
 
 
-<<<<<<< HEAD
-        qDebug() << "登录成功";
-        userid = lg->userid;
-        qDebug() << "从login里面赋值id" << userid;
-//        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
-//        My_info->ID=ba.data();
-        init_main_Weight();
-        this->show();
-
-        connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
-        if(p_socket->isOpen())
-        {
-            Map_Socket.insert(userid, p_socket);
-            qDebug() << "main:success connect socket!";
-        }
-
-=======
     qDebug() << "登录成功";
     userid = lg->userid;
     qDebug() << "从login里面赋值id" << userid;
@@ -62,7 +40,6 @@ void Main_Weight::log_in(){
         Map_Socket.insert(userid, p_socket);
         qDebug() << "main:success connect socket!";
     }
->>>>>>> 30c60265ad24d4b6f4d26783f8fd83baeefcf6fb
 }
 
 void Main_Weight::init_main_Weight()
@@ -210,8 +187,8 @@ void Main_Weight::create_Chatroom_whz()
 void Main_Weight::hand_message()
 {
     // 解码需要用到长度,所以只能用sock.read
-    char recvBuf[1024];
-    int len = p_socket->read(recvBuf, 1024);
+    char recvBuf[10000];
+    int len = p_socket->read(recvBuf, 10000);
 
     qDebug() <<"收到服务器消息,长度为" << len;
 
@@ -314,7 +291,7 @@ void Main_Weight::hand_message()
     return;
 }
 
-
+//Todo:list按照time排序
 void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
 {
     //先解除连接，清空list
@@ -333,7 +310,8 @@ void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
         QWidget *tmp_three_widget = new QWidget();
         QVBoxLayout *three_Item_Layout = new QVBoxLayout();
         tmp_three_widget->setLayout(three_Item_Layout);
-        QString tmp_id(QString(p_list->ID));
+        QString tmp_id(QString(p_list[i].ID));
+        qDebug() << "message id = " << tmp_id;
         //        QString str(QString(p_list->)); //设置用户名
         p_Message_Item[i] = new QToolButton();
         //        p_Message_Item[i]->setSizeHint(QSize(400, 100));
