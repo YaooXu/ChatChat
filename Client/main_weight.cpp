@@ -1,4 +1,4 @@
-#include "main_weight.h"
+﻿#include "main_weight.h"
 #include "ui_main_weight.h"
 
 
@@ -319,10 +319,12 @@ void Main_Weight::hand_message()
             int result = pMsg->body["accept"].asInt();    //协议中没有留出，之后要在协议里加
             if(result==0)
             {
+                p_Friend_Button->click();
                 QMessageBox::warning(this,"title","您和对方已是好友");
             }
             else
             {
+                p_Friend_Button->click();
                 QMessageBox::warning(this,"title","对方拒绝了您的申请");
             }
             break;
@@ -340,7 +342,44 @@ void Main_Weight::hand_message()
             friendinfo_interface *friendinfo = new friendinfo_interface(nullptr,ID,Icon,Name,Sex,Description);
             friendinfo->show();
             break;
-        }default:
+        }
+        case MESSAGE_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status!=0)
+            {
+                QMessageBox::warning(this,"title","对方不在线，将发送离线消息");
+            }
+            break;
+        }
+        case FRIEND_DELETE_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status==0)
+            {
+                QMessageBox::warning(this,"title","删除成功");
+                p_Friend_Button->click();
+            }
+            else
+            {
+                QMessageBox::warning(this,"title","删除失败");
+                p_Friend_Button->click();
+            }
+            break;
+        }
+        case FRIEND_GROUP_CHANGE_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status==0)
+            {
+                QMessageBox::warning(this,"title","改变分组成功");
+                p_Friend_Button->click();
+            }
+            else
+            {
+                QMessageBox::warning(this,"title","改变分组失败");
+                p_Friend_Button->click();
+            }
+            break;
+        }
+        default:
             break;
         }
         delete pMsg;
@@ -410,6 +449,7 @@ void Main_Weight::set_Friend_List(User_in_list *p_list, int num)
         qDebug() << "set_Friend_List:清空";
         three_Layout->removeWidget(p_Friend_List);
         p_Friend_List->clear_list();
+
         for(int i = 0; i < num; i++)
         {
             QString tmp_id = QString(p_list[i].ID);
