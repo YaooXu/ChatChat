@@ -45,6 +45,9 @@
 #define HISTORY_MESSAGE_REQ 1013
 #define FILE_TRANS_REQ 1015
 
+#define MESSAGE_GROUP_SEND 1016 
+
+
 // 服务器给客户端的server_id
 // 分为NOTI 直接通知
 // REP 对于请求的回应
@@ -62,13 +65,18 @@
 #define GET_MY_INF_REP 5011
 #define CHANGE_MY_INF_REP 5012
 #define MESSAGE_NOTI 5013
+#define MESSAGE_REP 5020
+
 #define SYSTEM_NOTI 5014
 // #define HISTORY_MESSAGE_REP 5014
 #define FILE_TRANS_NOTI 5015
+#define FILE_TRANS_REP 5019
 #define HISTORY_MESSAGE_REP 5016
 
 #define FRIEND_ADD_FIRST_REP 5017 // 第一次告诉ID1申请是否发送成功
 #define FRIEND_ADD_SECOND_REP 5018 // 第二次告诉ID2对方是否接受
+
+#define MESSAGE_GROUP_NOTI 5019
 // 服务器状态码
 #define NORMAL 0
 #define EPASSWORD_WRONG 1
