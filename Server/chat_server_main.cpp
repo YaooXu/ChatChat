@@ -723,6 +723,63 @@ void send_message(const char *ID1, const char *ID2, const char *content,
     return;
 }
 
+
+/*修改好友分组*/
+int change_friend_group(const char * id1,const char * id2,int groupint, User_connect_info *pUser1_connect_info) {
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char value[505] = {0};
+    sprintf(value, "'%s','%s'", id1, id2);
+    char group[505]={0};
+    sprintf(group, "GroupInt='%d'",groupint);
+    int state = update_data(mysql, "Friend", group, "Id1,Id2", value);
+    close_connection(mysql);
+    int status=NORMAL;
+    if (state==0)
+    {
+        status=NORMAL;
+    }else{
+        status=EDATABASE_WRECK;
+    }
+    uint32_t len = 0; 
+    Json::Value response;
+    response["status"]=status;
+    uint8_t *pData = encode(FRIEND_GROUP_CHANGE_REP, response, len);
+    send(pUser1_connect_info->user_fd, pData, len, 0);
+}
+
+
+
+/*删除好友*/
+int delete_friend(const char* id1,const char * id2, User_connect_info *pUser1_connect_info) {
+    MYSQL *mysql = mysql_init(NULL);
+    if (!mysql) {
+        my_error("mysql_init", __LINE__);
+    }
+    mysql_connect(mysql);
+    char value[505] = {0};
+    sprintf(value, "'%s','%s'", id1, id2);
+    int state = delete_data(mysql, "Friend", "Id1,Id2", value);
+    sprintf(value, "'%s','%s'", id2, id1);
+    state += delete_data(mysql, "Friend", "Id1,Id2", value);
+    close_connection(mysql);
+    int status=NORMAL;
+    if (state==0)
+    {
+        status=NORMAL;
+    }else{
+        status=EDATABASE_WRECK;
+    }
+    uint32_t len = 0; 
+    Json::Value response;
+    response["status"]=status;
+    uint8_t *pData = encode(FRIEND_DELETE_REP, response, len);
+    send(pUser1_connect_info->user_fd, pData, len, 0);
+}
+
 void *handClient(void *arg) {
     char buf[1024] = {0};
     struct User_connect_info *pUser_connect_info =
@@ -790,6 +847,8 @@ void *handClient(void *arg) {
                 // TODO:好友删除
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
+                delete_friend(ID1,ID2,pUser_connect_info);
+
             } else if (server_id == FRIEND_VERIFY_REQ) {
                 // TODO:ID1处理ID2的添加申请
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -800,20 +859,21 @@ void *handClient(void *arg) {
                 friend_add_req2(ID1,ID2,group_id,choose,pUser_connect_info);
 
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
-                // TODO:分组改变
+                // 分组改变,测试通过
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int group_id = pMsg->body["group_id"].asInt();
+                change_friend_group(ID1,ID2,group_id,pUser_connect_info);
             } else if (server_id == GET_FRIEND_INF_REQ) {
-                // TODO:好友信息请求
+                // 好友信息请求,测试通过
                 const char *ID = pMsg->body["ID"].asCString();
                 send_friend_list(ID, pUser_connect_info);
             } else if (server_id == GET_MY_INF_REQ) {
-                // 自身信息
+                // 自身信息，测试通过
                 const char *ID = pMsg->body["ID"].asCString();
                 send_user_info(ID, pUser_connect_info);
             } else if (server_id == CHANGE_MY_INF_REQ) {
-                // 修改个人信息
+                // 修改个人信息，测试通过
                 const char *ID = pMsg->body["ID"].asCString();
                 int photo_id = pMsg->body["photo_id"].asInt();
                 const char *name = pMsg->body["name"].asCString();
@@ -825,7 +885,7 @@ void *handClient(void *arg) {
                 update_user_info(ID, name, photo_id, sex_id, tel, description,question,answer,
                                  pUser_connect_info);
             } else if (server_id == MESSAGE_SEND) {
-                // 消息发送
+                // 消息发送，测试通过
                 const char *ID1 = pMsg->body["ID1"].asCString();
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *content = pMsg->body["content"].asCString();
@@ -861,7 +921,7 @@ int main() {
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = ntohs(PORT);
 
-    if (1 != inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr)) {
+    if (1 != inet_pton(AF_INET, "0.0.0.0", &server_addr.sin_addr)) {
         perror("Invalid IP");
         exit(1);
     }
