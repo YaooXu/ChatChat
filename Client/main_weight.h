@@ -12,6 +12,7 @@
 #include "chatroom.h"
 #include "addfri_interface.h"
 #include "info.h"
+#include"group_chat.h"
 #include "receive_addfri_interface.h"
 #include "friendinfo_interface.h"
 #include "qdebug.h"
@@ -63,11 +64,12 @@ private:
     QPushButton *p_Setting;//设置按钮
     QPushButton *p_Add_Friend;//添加好友按钮
     Login *lg;
+    QString user_name;
     QVBoxLayout *main_Layout;
     info *self_info;
     QStackedLayout *three_Layout;
     QHBoxLayout *four_Layout;
-
+    group_chat*gp_chat;
 
 public slots:
     void create_Chatroom(QString uID);
@@ -81,6 +83,7 @@ public slots:
 private slots:
     void on_clicked_Friend_Button();
     void on_clicked_Message_Button();
+    void on_clicked_group_button();
     void log_in();
 signals:
     void log_signal(int);
