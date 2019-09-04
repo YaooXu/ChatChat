@@ -33,7 +33,12 @@ void Main_Weight::log_in(){
     //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
     //        My_info->ID=ba.data();
     init_main_Weight();
+
+
     this->show();
+    //qDebug()<<user_name;
+
+    qDebug()<<user_name<<"1111111111111111111!!!!111";
     connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
     if(p_socket->isOpen())
     {
@@ -45,8 +50,8 @@ void Main_Weight::log_in(){
 void Main_Weight::init_main_Weight()
 {
 
-    this->setWindowTitle("QQ");
-    user_name=lg->username;
+    this->setWindowTitle("Chatchat");
+
     p_User_icon = new QPushButton();
     p_User_icon->setFixedSize(100, 100);
     //
@@ -55,7 +60,7 @@ void Main_Weight::init_main_Weight()
     p_User_icon->setIconSize(QSize(100, 100));
     connect(p_User_icon,SIGNAL(clicked()),this,SLOT(create_info()));
 
-    gp_chat=new group_chat(p_socket,userid,user_name);
+
     p_User_name = new QLabel();
     //p_User_name->setText("用户名");
     p_User_personal = new QLabel();
@@ -80,7 +85,7 @@ void Main_Weight::init_main_Weight()
     connect(p_Friend_Button, SIGNAL(clicked()), this, SLOT(on_clicked_Friend_Button()));
     p_Group_Button = new QPushButton();
     p_Group_Button->setText("群组");
-    connect(p_Group_Button,SIGNAL(clicked()),this,SLOT(on_clicked_group_button()));
+
     QHBoxLayout *two_Layout = new QHBoxLayout();
     two_Layout->addWidget(p_Message_Button);
     two_Layout->addWidget(p_Friend_Button);
@@ -263,8 +268,9 @@ void Main_Weight::hand_message()
             Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
             break;
         }
-        case GET_MY_INF_REP:{
+        case GET_MY_INF_REP:{//初始化个人信息
             self_info = new info(p_socket);
+            qDebug()<<"个人信息初始化";
             connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
             connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
             connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
@@ -272,6 +278,11 @@ void Main_Weight::hand_message()
             User_info *pUser_info = decode2User_info(pMsg, length);
             int x=pUser_info->photo_id;
             QString name=pUser_info->name;
+            user_name=name;
+            gp_chat=new group_chat(p_socket,userid,user_name);
+            qDebug()<<user_name<<"22222222222222";
+            connect(p_Group_Button,SIGNAL(clicked()),this,SLOT(on_clicked_group_button()));
+            qDebug()<<"111111111111111111111111"<<name<<lg->username;
             name="昵称:"+name;
             p_User_name->setText(name);
             QString mood=pUser_info->description;
@@ -300,7 +311,7 @@ void Main_Weight::hand_message()
             QString time=QString(pMsg->body["time"].asCString());
 
 
-            gp_chat->add_msg1(ID1, content);
+            gp_chat->add_msg1(name, content);
             break;
         }
         case FRIEND_ADD_FIRST_REP:{
@@ -492,6 +503,6 @@ void Main_Weight::change_name(QString name){
 
 }
 void Main_Weight::on_clicked_group_button(){
-    qDebug()<<"aaaaaaaaaaa";
+    //qDebug()<<"aaaaaaaaaaa";
     gp_chat->show();
 }

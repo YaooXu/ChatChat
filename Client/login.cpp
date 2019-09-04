@@ -15,8 +15,8 @@ Login::Login(QTcpSocket *p_socket, QWidget *parent) :
     connect(regBtn,SIGNAL(clicked()), this, SLOT(change_reg()));
     //    connect*()
 
-//    p_login_socket->connectToHost("182.92.193.104", 5117);
-    p_login_socket->connectToHost("127.0.0.1", 5117);
+     p_login_socket->connectToHost("182.92.193.104", 5117);
+   //  p_login_socket->connectToHost("127.0.0.1", 5117);
     connect(p_login_socket, SIGNAL(connected()), this, SLOT(handconnect()));
 }
 
@@ -175,11 +175,14 @@ void Login::handData()
             return;
 
         } else if (pMsg->body["status"].asInt() == EPASSWORD_WRONG){
-            qDebug() << "PASSWORD WRONG";
+            QString msg="不好意思，用户密码错误";
+            QMessageBox::information(this, "失败", msg, QMessageBox::Yes | QMessageBox::No);
         } else if (pMsg->body["status"].asInt() == EUSER_NOTEXSIT) {
-            qDebug() << "USER NOT EXSIT";
+            QString msg="不好意思，用户不存在";
+            QMessageBox::information(this, "失败", msg, QMessageBox::Yes | QMessageBox::No);
         } else {
-            qDebug() << "UNKOWN ERROR";
+            QString msg="不好意思，由于未知原因请您重新登录。";
+            QMessageBox::information(this, "失败", msg, QMessageBox::Yes | QMessageBox::No);
         }
         break;
     case REGISTER_REP:
@@ -189,6 +192,11 @@ void Login::handData()
              QString msg="恭喜您已经注册成功，您的ID为："+ID;
              QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
              qDebug()<<ID;
+        }
+        else{
+            QString msg="不好意思，请您重新注册";
+            QMessageBox::information(this, "失败", msg, QMessageBox::Yes | QMessageBox::No);
+
         }
 
          //QMessageBox::information(this, tr("错误"), tr("用户ID必须是数字"));d
