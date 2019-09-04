@@ -253,8 +253,12 @@ void Main_Weight::hand_message()
         int length = 0;
         User_info *pUser_info = decode2User_info(pMsg, len, length);
         int x=pUser_info->photo_id;
-        p_User_name->setText(pUser_info->name);
-        p_User_personal->setText(pUser_info->description);
+        QString name=pUser_info->name;
+        name="昵称:"+name;
+        p_User_name->setText(name);
+        QString mood=pUser_info->description;
+        mood="个性签名："+mood;
+        p_User_personal->setText(mood);
         QString image_name;
         image_name.sprintf(":/src/img/%d.png",x);
         p_User_icon->setIcon(QPixmap(image_name));
@@ -381,10 +385,12 @@ void Main_Weight::change_main_photo(int x){
 
 }
 void Main_Weight::change_description(QString des){
+    des="个性签名："+des;
     p_User_personal->setText(des);
     //qDebug()<<"sad";
 }
 void Main_Weight::change_name(QString name){
+    name="昵称："+name;
     p_User_name->setText(name);
 
 }
