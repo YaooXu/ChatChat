@@ -20,13 +20,13 @@ repository::repository(QWidget *parent) :
     ui->eleven->setIcon(QPixmap(":/src/img/11.png"));
     ui->twelve->setIcon((QPixmap(":/src/img/12.png")));
     ui->thirteen->setIcon(QPixmap(":/src/img/13.png"));
-    ui->fourteen->setIcon(QPixmap("::/src/img/14.png"));
+    ui->fourteen->setIcon(QPixmap(":/src/img/14.png"));
     ui->fifteen->setIcon(QPixmap(":/src/img/15.png"));
     ui->sixteen->setIcon(QPixmap(":/src/img/16.png"));
     ui->seventeen->setIcon(QPixmap(":/src/img/17.png"));
     ui->eighteen->setIcon(QPixmap(":/src/img/18.png"));
     ui->nineteen->setIcon(QPixmap(":/src/img/19.png"));
-    ui->twenty->setIcon(QPixmap("::/src/img/20.png"));
+    ui->twenty->setIcon(QPixmap(":/src/img/20.png"));
     ui->one->setIconSize(QSize(200,200));
     ui->two->setIconSize(QSize(200,200));
     ui->three->setIconSize(QSize(200,200));

@@ -35,11 +35,12 @@ public:
     QTcpSocket *p_socket;
     QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
     QMap<QString, QTcpSocket*> Map_Socket;//ID对应用户的socket指针
+
     User_info *My_info;
 
     void init_main_Weight();
-    void set_Message_List();
-    void set_Friend_List();
+    void set_Message_List(User_in_recent *p_list, int num);
+    void set_Friend_List(User_in_list *p_list, int num);
 
 
 
@@ -71,7 +72,8 @@ public slots:
     void create_addfri();
     void create_info();
     void change_main_photo(int);
-
+    void change_description(QString);
+    void change_name(QString);
 private slots:
     void on_clicked_Friend_Button();
     void on_clicked_Message_Button();

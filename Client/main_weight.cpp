@@ -6,15 +6,14 @@ Main_Weight::Main_Weight(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::main_Weight)
 {
-//    init_main_Weight();
+    //    init_main_Weight();
+    //    setWindowFlags(Qt::WindowStaysOnBottomHint);
     p_socket = new QTcpSocket();
     lg = new Login(p_socket);
     lg->resize(700, 100);
     lg->show();
 
-//    lg.islogin = true;
-
-
+    //    lg.islogin = true;
 
     connect(lg,SIGNAL(loginSuccess()),this,SLOT(log_in()));
 
@@ -27,22 +26,22 @@ Main_Weight::~Main_Weight()
 }
 void Main_Weight::log_in(){
 
-        init_main_Weight();
-        qDebug() << "登录成功";
-        userid = lg->userid;
-//        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
-//        My_info->ID=ba.data();
 
-        this->show();
-        connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
-        if(p_socket->isOpen())
-        {
-            Map_Socket.insert(userid, p_socket);
-            qDebug() << "main:success connect socket!";
-        }
-
-
+    qDebug() << "登录成功";
+    userid = lg->userid;
+    qDebug() << "从login里面赋值id" << userid;
+    //        QByteArray ba = lg.userid.toLatin1(); //填写用户信息，未完成
+    //        My_info->ID=ba.data();
+    init_main_Weight();
+    this->show();
+    connect(p_socket, SIGNAL(readyRead()), this, SLOT(hand_message()));
+    if(p_socket->isOpen())
+    {
+        Map_Socket.insert(userid, p_socket);
+        qDebug() << "main:success connect socket!";
+    }
 }
+
 void Main_Weight::init_main_Weight()
 {
 
@@ -51,14 +50,14 @@ void Main_Weight::init_main_Weight()
     p_User_icon = new QPushButton();
     p_User_icon->setFixedSize(100, 100);
     //
-//    p_User_icon->setIcon(QPixmap(":/src/img/1.png"));
+    //    p_User_icon->setIcon(QPixmap(":/src/img/1.png"));
     p_User_icon->setFlat(false);//设置外观是否为扁平状
     p_User_icon->setIconSize(QSize(100, 100));
     connect(p_User_icon,SIGNAL(clicked()),this,SLOT(create_info()));
 
 
     p_User_name = new QLabel();
-    p_User_name->setText("用户名");
+    //p_User_name->setText("用户名");
     p_User_personal = new QLabel();
     p_User_personal->setText("个人介绍");
 
@@ -93,7 +92,9 @@ void Main_Weight::init_main_Weight()
 
     //Todo:这里初始化消息列表，下一步从服务器访问消息
     qDebug() << "Message初始化";
-    on_clicked_Message_Button();
+    //    on_clicked_Message_Button();
+
+    p_Friend_List = new FriList(p_socket, userid);
 
 
     three_Layout->addWidget(p_Message_List);
@@ -102,11 +103,10 @@ void Main_Weight::init_main_Weight()
     qDebug() << "Friend初始化";
 
     //Todo:这里初始化好友列表，下一步从服务器访问消息
-    on_clicked_Friend_Button();
+    //    on_clicked_Friend_Button();
 
 
     three_Layout->setCurrentIndex(0);
-
 
     p_Setting = new QPushButton();
     p_Setting->setText("设置");
@@ -138,20 +138,27 @@ void Main_Weight::init_main_Weight()
 void Main_Weight::on_clicked_Message_Button()
 {
     //Todo：给服务器发送消息
-    set_Message_List();
+    uint32_t len = 0;
+    Json::Value message;
+    message["ID"] = userid.toStdString().c_str();
+    qDebug() << "userid = " << userid;
+    uint8_t *pData = encode(RECENT_LIST_REQ, message, len);
+
+    qDebug() << "向服务器请求最近消息列表, length : " << len;
+    p_socket->write((char *)pData, len);
 
 }
 
 void Main_Weight::on_clicked_Friend_Button()
 {
     //Todo:从服务器访问好友列表
-    if(p_Friend_List == nullptr)
-    {
-        set_Friend_List();
-    }
-    else {
-        three_Layout->setCurrentIndex(1);
-    }
+    uint32_t len = 0;
+    Json::Value message;
+    message["ID"] = userid.toStdString().c_str();
+    uint8_t *pData = encode(FRIEND_LIST_REQ, message, len);
+
+    qDebug() << "向服务器请求好友列表, length : " << len;
+    p_socket->write((char *)pData, len);
 
 }
 
@@ -172,19 +179,16 @@ void Main_Weight::create_Chatroom(QString uID)
     }
 }
 
-
-
 void Main_Weight::create_Chatroom_whz()
 {
 
 }
 
-
 void Main_Weight::hand_message()
 {
     // 解码需要用到长度,所以只能用sock.read
-    char recvBuf[1024];
-    int len = p_socket->read(recvBuf, 1024);
+    char recvBuf[10000];
+    int len = p_socket->read(recvBuf, 10000);
 
     qDebug() <<"收到服务器消息,长度为" << len;
 
@@ -196,120 +200,156 @@ void Main_Weight::hand_message()
     // 需要转化为uint8_t类型字符串
     uint8_t *pData = (uint8_t *)recvBuf;
     if (!myDecode.parser(pData, len)) {
-        printf("parser falied!\n");
+        qDebug() << "parser falied!\n";
     } else {
-        printf("parser successfully!, len = %d\n", len);
+        qDebug() << "parser successfully!, len = " << len;
     }
 
+    qDebug() << "已解包的包个数" << myDecode.mMsgQ.size();
+
+    MyProtoMsg *pMsg;
     // 解码的结果存在结构体的一个队列里,直接通过.front访问
-    MyProtoMsg *pMsg = myDecode.front();  // 协议消息的指针
+    // !!!
+    while (!myDecode.empty()) {
+        pMsg= myDecode.front();  // 协议消息的指针
+        myDecode.pop();
 
-    int server_id = pMsg->head.server_id;
+        int server_id = pMsg->head.server_id;
 
-    qDebug()<<server_id;
+        qDebug() << "收到的消息头为: " << server_id;
 
-    switch (server_id) {
-    case REGISTER_REP://处理注册成功信号
+        switch (server_id) {
+        case REGISTER_REP://处理注册成功信号
 
-        break;
-    case LOGIN_REP://处理登录成功信号
+            break;
+        case LOGIN_REP://处理登录成功信号
 
-        break;
-    case MESSAGE_NOTI://服务器发送消息到客户端
-    {
-        Message *p_message = decode2Message(pMsg, len);
-        qDebug() << "收到服务器的消息, ID1 = " << QString(p_message->ID1) << ", ID2 = "<< QString(p_message->ID2);
-        qDebug() << "content: " << QString(p_message->content);
-        //注意：message是好友发给ID1的，所以userid为ID2，而好友为ID1
-        QString tmp_ID2 = QString(p_message->ID1);
-        QString tmp_content = QString(p_message->content);
-        if(Map_Chatroom[tmp_ID2] == nullptr)
+            break;
+        case RECENT_LIST_REP://处理返回最近联系人列表
         {
-            create_Chatroom(tmp_ID2);
-        }
-        else {
-            Map_Chatroom[tmp_ID2]->show();
-        }
-        Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
-        break;
-    }
-    case GET_MY_INF_REP:{
-        self_info = new info(p_socket);
-        connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
-        int length = 0;
-        User_info *pUser_info = decode2User_info(pMsg, len, length);
-        int x=pUser_info->photo_id;
-        QString image_name;
-        image_name.sprintf(":/src/img/%d.png",x);
-        p_User_icon->setIcon(QPixmap(image_name));
-        self_info->updat_info(pUser_info);
-        break;
-    }
-    case CHANGE_MY_INF_REP:{
-        qDebug()<<pMsg->body["status"].asInt()<<"信息修改反馈";
-        if(pMsg->body["status"].asInt()==NORMAL){
+            int num = 0;
+            User_in_recent *recent_message_List = decode2User_recent(pMsg, num);//num是这个list的长度
+            qDebug() << "收到服务器最近联系列表，个数为: " << num;
+            set_Message_List(recent_message_List, num);
 
-            QString msg="恭喜您已经修改成功";
-            QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
         }
-        break;
-    }
-    case FRIEND_ADD_FIRST_REP:{
-        int status = pMsg->body["status"].asInt();
-        if(status==0)
+            break;
+        case FRIEND_LIST_REP://处理返回的好友列表
         {
-            QMessageBox::warning(this,"title","成功发送");
+            int num = 0;
+            User_in_list *friend_List = decode2User_list(pMsg, num);//num是这个list的长度
+            qDebug() << "收到服务器最近联系列表，个数为: " << num;
+            set_Friend_List(friend_List, num);
         }
-        else {
+            break;
+        case MESSAGE_NOTI://服务器发送消息到客户端
+        {
+            Message *p_message = decode2Message(pMsg);
+            qDebug() << "收到服务器的消息, ID1 = " << QString(p_message->ID1) << ", ID2 = "<< QString(p_message->ID2);
+            qDebug() << "content: " << QString(p_message->content);
+            //注意：message是好友发给ID1的，所以userid为ID2，而好友为ID1
+            QString tmp_ID2 = QString(p_message->ID1);
+            QString tmp_content = QString(p_message->content);
+            if(Map_Chatroom[tmp_ID2] == nullptr)
             {
-                QMessageBox::warning(this,"title","发送失败");
+                create_Chatroom(tmp_ID2);
             }
-        }
-        break;
-    }
-    case FRIEND_ADD_NOTI:{
-        int length=0;
-        User_in_list *p_message = decode2User_list(pMsg,len,length);
-        QString claimer_ID=p_message->ID;
-        QString claimer_Name=p_message->name;
-        receive_addfri_interface *receive_addfri = new receive_addfri_interface(nullptr,userid,claimer_ID,claimer_Name,p_socket);
-        receive_addfri->show();
-        break;
-    }
-    case FRIEND_ADD_SECOND_REP:{
-        int status = pMsg->body["status"].asInt();
-        int result = pMsg->body["accept"].asInt();    //协议中没有留出，之后要在协议里加
-        if(result==0)
-        {
-            QMessageBox::warning(this,"title","您和对方已是好友");
-        }
-        else
-        {
-            QMessageBox::warning(this,"title","对方拒绝了您的申请");
-        }
-        break;
+            else {
+                Map_Chatroom[tmp_ID2]->show();
+            }
 
-    }
-    case GET_FRIEND_INF_REP:{
-        int length=0;
-        User_in_list *p_message = decode2User_list(pMsg,len,length);
-        QString ID = p_message->ID;
-        int Icon=p_message->photo_id;
-        QString Name = p_message->name;
-        int Sex = p_message->sex_id;
-        QString Description = p_message->description;
 
-        friendinfo_interface *friendinfo = new friendinfo_interface(nullptr,ID,Icon,Name,Sex,Description);
-        friendinfo->show();
-        break;
-    }
-    }
+            Map_Chatroom[tmp_ID2]->add_msg(tmp_ID2, tmp_content);
+            break;
+        }
+        case GET_MY_INF_REP:{
+            self_info = new info(p_socket);
+            connect(self_info,SIGNAL(send_signal(int)),this,SLOT(change_main_photo(int)));
+            connect(self_info,SIGNAL(send_des(QString)),this,SLOT(change_description(QString)));
+            connect(self_info,SIGNAL(send_name(QString)),this,SLOT(change_name(QString)));
+            int length = 0;
+            User_info *pUser_info = decode2User_info(pMsg, length);
+            int x=pUser_info->photo_id;
+            QString name=pUser_info->name;
+            name="昵称:"+name;
+            p_User_name->setText(name);
+            QString mood=pUser_info->description;
+            mood="个性签名："+mood;
+            p_User_personal->setText(mood);
+            QString image_name;
+            image_name.sprintf(":/src/img/%d.png",x);
+            p_User_icon->setIcon(QPixmap(image_name));
+            self_info->updat_info(pUser_info);
+            break;
+        }
+        case CHANGE_MY_INF_REP:{
+            qDebug()<<pMsg->body["status"].asInt()<<"信息修改反馈";
+            if(pMsg->body["status"].asInt()==NORMAL){
 
+                QString msg="恭喜您已经修改成功";
+                QMessageBox::information(this, "成功", msg, QMessageBox::Yes | QMessageBox::No);
+            }
+            break;
+
+        }
+        case FRIEND_ADD_FIRST_REP:{
+            int status = pMsg->body["status"].asInt();
+            if(status==0)
+            {
+                QMessageBox::warning(this,"title","成功发送");
+            }
+            else {
+                {
+                    QMessageBox::warning(this,"title","发送失败");
+                }
+            }
+            break;
+        }
+        case FRIEND_ADD_NOTI:{
+            int length=0;
+            User_in_list *p_message = decode2User_list(pMsg,length);
+            QString claimer_ID=p_message->ID;
+            QString claimer_Name=p_message->name;
+            receive_addfri_interface *receive_addfri = new receive_addfri_interface(nullptr,userid,claimer_ID,claimer_Name,p_socket);
+            receive_addfri->show();
+            break;
+        }
+        case FRIEND_ADD_SECOND_REP:{
+            int status = pMsg->body["status"].asInt();
+            int result = pMsg->body["accept"].asInt();    //协议中没有留出，之后要在协议里加
+            if(result==0)
+            {
+                QMessageBox::warning(this,"title","您和对方已是好友");
+            }
+            else
+            {
+                QMessageBox::warning(this,"title","对方拒绝了您的申请");
+            }
+            break;
+
+        }
+        case GET_FRIEND_INF_REP:{
+            int length=0;
+            User_in_list *p_message = decode2User_list(pMsg,length);
+            QString ID = p_message->ID;
+            int Icon=p_message->photo_id;
+            QString Name = p_message->name;
+            int Sex = p_message->sex_id;
+            QString Description = p_message->description;
+
+            friendinfo_interface *friendinfo = new friendinfo_interface(nullptr,ID,Icon,Name,Sex,Description);
+            friendinfo->show();
+            break;
+        }default:
+            break;
+        }
+        delete pMsg;
+    }
     return;
 }
 
-
-void Main_Weight::set_Message_List()
+//Todo:list按照time排序
+void Main_Weight::set_Message_List(User_in_recent *p_list, int num)
 {
     //先解除连接，清空list
     for(int i = 0; i < p_Message_List->count(); i++)
@@ -318,23 +358,25 @@ void Main_Weight::set_Message_List()
         delete p_Message_Item[i];
     }
     p_Message_List->clear();
+
     QIcon aIcon;//假设头像
     aIcon.addFile(":/src/img/1.jpg");
 
-    for (int i=0;i<1;i++)
+    for (int i = 0; i < num; i++)
     {
         QWidget *tmp_three_widget = new QWidget();
         QVBoxLayout *three_Item_Layout = new QVBoxLayout();
         tmp_three_widget->setLayout(three_Item_Layout);
-        QString tmp_id("100040");
-        QString str = QString::asprintf("用户 %s",i);
+        QString tmp_id(QString(p_list[i].ID));
+        qDebug() << "message id = " << tmp_id;
+        //        QString str(QString(p_list->)); //设置用户名
         p_Message_Item[i] = new QToolButton();
         //        p_Message_Item[i]->setSizeHint(QSize(400, 100));
         p_Message_Item[i]->setObjectName(tmp_id);//设置好友ID2对应toolbutton的name
-
-        p_Message_Item[i]->setText(tmp_id);       //设置文字标签
+        p_Message_Item[i]->setText(tmp_id);    //设置文字标签
+        //        QString imagename;
+        //        imagename.sprintf(":/src/img/%d.png", p_list->);//设置头像
         p_Message_Item[i]->setIcon(aIcon);     //设置图标
-        //        p_Message_Item[i]->installEventFilter(this);//p_Message_Item的点击事件由main_weight来处理
         p_Message_Item[i]->setIconSize(QSize(100, 100));//设置p_Message_Item大小和图像一致
         p_Message_Item[i]->setAutoRaise(true);//设置p_Message_Item自动浮起界面风格
         p_Message_Item[i]->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);//设置p_Message_Item文字在图像旁边
@@ -360,34 +402,51 @@ void Main_Weight::set_Message_List()
 
 }
 
-void Main_Weight::set_Friend_List()
-{
-    //set好友列表
-    if(p_Friend_List != nullptr && !p_Friend_List->is_empty())
+void Main_Weight::set_Friend_List(User_in_list *p_list, int num)
+{   
+    //Todo:将好友列表加载
+    if(p_Friend_List != nullptr)
     {
+        qDebug() << "set_Friend_List:清空";
         three_Layout->removeWidget(p_Friend_List);
         p_Friend_List->clear_list();
+        for(int i = 0; i < num; i++)
+        {
+            QString tmp_id = QString(p_list[i].ID);
+            QString tmp_name = QString(p_list[i].name);
+            QString tmp_icon = QString::number(p_list[i].photo_id);
+            int is_online = p_list[i].online;
+            int tmp_group_id = p_list[i].group_id;
+            switch (tmp_group_id) {
+            case 1:
+                p_Friend_List->add_friend(tmp_id, tmp_name, tmp_icon);
+                break;
+            case 2:
+                p_Friend_List->add_family(tmp_id, tmp_name, tmp_icon);
+                break;
+            case 3:
+                p_Friend_List->add_colleague(tmp_id, tmp_name, tmp_icon);
+                break;
+            case 4:
+                p_Friend_List->add_classmate(tmp_id, tmp_name, tmp_icon);
+                break;
+            case 5:
+                p_Friend_List->add_blacklist(tmp_id, tmp_name, tmp_icon);
+                break;
+            default:
+                break;
+            }
 
-        //p_Friend_List->add_friend("10002","赵满刚","01");
+
+        }
+
         three_Layout->addWidget(p_Friend_List);
         three_Layout->setCurrentIndex(1);
     }
     else {
-        //Todo:预加载p_Friend_List
-        p_Friend_List = new FriList(p_socket, userid);
-        p_Friend_List->add_friend("10001","kid","1");
-        p_Friend_List->add_friend("10002","赵满刚","2");
-        p_Friend_List->add_family("10003","shr2","3");
-        p_Friend_List->add_colleague("10004","shr3","4");
-        p_Friend_List->add_classmate("10005","shr4","5");
-        p_Friend_List->add_blacklist("10006","shr5","5");
-        three_Layout->addWidget(p_Friend_List);
+        //Todo:空指针不用管
 
     }
-
-    //Todo:将好友列表加载
-
-    qDebug() << "set_Friend_List:清空";
 
 }
 
@@ -399,7 +458,6 @@ void Main_Weight::create_addfri()
 
 void Main_Weight::create_info()
 {
-
     self_info->show();
 }
 
@@ -407,8 +465,18 @@ void Main_Weight::change_main_photo(int x){
     QString imagename2;
 
     imagename2.sprintf(":/src/img/%d.png",x);
-    p_User_name->setText("tzy");
+    //p_User_name->setText("tzy");
     p_User_icon->setIcon(QPixmap(imagename2));
-    qDebug()<<"changephoto to " << imagename2;
+    //qDebug()<<"changephoto to " << imagename2;
+
+}
+void Main_Weight::change_description(QString des){
+    des="个性签名："+des;
+    p_User_personal->setText(des);
+    //qDebug()<<"sad";
+}
+void Main_Weight::change_name(QString name){
+    name="昵称："+name;
+    p_User_name->setText(name);
 
 }

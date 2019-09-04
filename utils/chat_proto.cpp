@@ -1,4 +1,5 @@
 #include "chat_proto.h"
+// #include <QDebug>
 
 using namespace std;
 
@@ -279,7 +280,7 @@ MyProtoMsg *decode2Msg(const char *buf, int len) {
     ]
 }
 */
-User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length) {
+User_in_list *decode2User_list(MyProtoMsg *pMsg, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
@@ -306,7 +307,7 @@ User_in_list *decode2User_list(MyProtoMsg *pMsg, int buf_len, int &length) {
     return pUsers_in_list;
 }
 
-User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length) {
+User_info *decode2User_info(MyProtoMsg *pMsg, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // 查寻自己的信息
 //    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
@@ -334,10 +335,11 @@ User_info *decode2User_info(MyProtoMsg *pMsg, int buf_len, int &length) {
     return pUser_info;
 }
 
-User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length){
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length){
     // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
+//    qDebug() << "结构体数组长度:" << length;
     User_in_recent *pUser_recent = new User_in_recent[length];
 
     for (int i = 0; i < length; i++) {
@@ -351,7 +353,7 @@ User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int buf_len, int &length){
 }
 
 
-Message *decode2Message(MyProtoMsg *pMsg, int len) {
+Message *decode2Message(MyProtoMsg *pMsg) {
 //    MyProtoMsg *pMsg = decode2Msg(buf, len);
     Message *pMessage = new Message();
     pMessage->ID1 = (char *)pMsg->body["ID1"].asCString();

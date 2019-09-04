@@ -213,7 +213,7 @@ void FriList::add_colleague(QString id, QString name, QString icon)
 void FriList::add_classmate(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
+    QString iconpath = QString(":/src/img/%1.png").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
