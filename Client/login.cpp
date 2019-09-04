@@ -80,7 +80,7 @@ void Login::init_Login()
     setAutoFillBackground(true);
     QPalette palette;
     //palette.setColor(QPalette::Background, QColor(Qt::blue));
-    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/img/1.png")));//设置登陆背景
+    palette.setBrush(QPalette::Background, QBrush(QPixmap(":/src/24.JPG")));//设置登陆背景
     setPalette(palette);
 }
 
