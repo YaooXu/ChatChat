@@ -1,7 +1,7 @@
 #include "friendinfo_interface.h"
 #include "ui_friendinfo_interface.h"
 
-friendinfo_interface::friendinfo_interface(QWidget *parent,QString fri_ID, int fri_Icon,QString fri_Name,int fri_Sex,QString fri_Description) :
+friendinfo_interface::friendinfo_interface(QWidget *parent,QString fri_ID,int fri_Icon,QString fri_Name,int fri_Sex,QString fri_des,QString fri_tel) :
     QDialog(parent),
     ui(new Ui::friendinfo_interface)
 {
@@ -10,7 +10,9 @@ friendinfo_interface::friendinfo_interface(QWidget *parent,QString fri_ID, int f
     Icon=fri_Icon;
     Name=fri_Name;
     Sex=fri_Sex;
-    Description=fri_Description;
+    Description=fri_des;
+    tel=fri_tel;
+
 
     ui->label_ID->setText(ID);
     ui->label_name->setText(Name);
@@ -29,6 +31,7 @@ friendinfo_interface::friendinfo_interface(QWidget *parent,QString fri_ID, int f
     ui->label_description->setText(Description);
     QString iconpath = QString(":/src/img/%1.jpg").arg(Icon);
     ui->iconButton->setIcon(QPixmap(iconpath));
+    ui->label_tel->setText(tel);
 }
 
 friendinfo_interface::~friendinfo_interface()

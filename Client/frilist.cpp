@@ -36,6 +36,7 @@ FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlag
         qDebug()<<"重新分组";
         regroup_interface * regroup_friend = new regroup_interface(nullptr,userid,ID2_temp,p_Friend_sock);
         regroup_friend->show();
+
     });
     connect( buttonAction2, &QAction::triggered, [=]()
     {
@@ -48,9 +49,9 @@ FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlag
         qDebug()<<"查看好友资料";
         uint32_t len=0;
         Json::Value message;
-        message["ID2"]=ID2_temp.toStdString().c_str();
+        message["ID"]=ID2_temp.toStdString().c_str();
         uint8_t *pData=encode(GET_FRIEND_INF_REQ,message,len);
-        p_sock->write((char*)pData,len);
+        p_Friend_sock->write((char*)pData,len);
     });
 }
 
