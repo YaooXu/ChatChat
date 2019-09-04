@@ -352,6 +352,8 @@ void user_login(const char *ID, const char *password,
         send_friend_list(ID, pUser_connect_info);
         // sleep(1);
         send_recent_list(ID, pUser_connect_info);
+        // 登记连接信息
+        pUser_connect_info->user_id = atoi(ID);
     }
     delete[] pData;
 }
@@ -436,7 +438,8 @@ void user_register(const char *name, const char *password,
 }
 
 void update_user_info(const char *ID, const char *name, int photo_id,
-                      int sex_id, const char *tel, const char *description,const char *question,const char *answer,
+                      int sex_id, const char *tel, const char *description,
+                      const char *question, const char *answer,
                       User_connect_info *pUser_connect_info) {
     int RESPTYPE = CHANGE_MY_INF_REP;
     uint32_t len = 0;  // 数据包长度
@@ -447,7 +450,7 @@ void update_user_info(const char *ID, const char *name, int photo_id,
     sprintf(value,
             "Name='%s',Photo='%d',Sex='%d',Email='%s',Telephone='%s',"
             "Description='%s',Question='%s',Answer='%s'",
-            name, photo_id, sex_id, email, tel, description,question,answer);
+            name, photo_id, sex_id, email, tel, description, question, answer);
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -617,7 +620,8 @@ void friend_add_req(const char *ID1, const char *ID2, int group_id,
     send(pUser_connect_info->user_fd, pData, len, 0);
 }
 
-int send_message_to_all(const char *buf, int len) {
+int send_message_to_all(const char *buf, int len,
+                        User_connect_info *pUser_connect_info) {
     // Message *message = new Message();
     // strcpy(message->ID1, "12345");
     // strcpy(message->ID2, "guxiao");
@@ -627,6 +631,10 @@ int send_message_to_all(const char *buf, int len) {
     for (iter = ID2info.begin(); iter != ID2info.end(); iter++) {
         int id = iter->first;
         User_connect_info *user = iter->second;
+        if (id == pUser_connect_info->user_id) {
+            // 不再给发送者发送消息
+            continue;
+        }
         // response["ID1"] = message->ID1;
         // response["ID2"] = message->ID2;
         // response["content"] = message->content;
@@ -638,8 +646,8 @@ int send_message_to_all(const char *buf, int len) {
 }
 
 // 好友请求申请(第二次请求)
-void friend_add_req2(const char *ID1, const char *ID2, int group_id,int choose,
-                    User_connect_info *pUser_connect_info) {
+void friend_add_req2(const char *ID1, const char *ID2, int group_id, int choose,
+                     User_connect_info *pUser_connect_info) {
     MYSQL *mysql = mysql_init(NULL);
     if (!mysql) {
         my_error("mysql_init", __LINE__);
@@ -649,33 +657,32 @@ void friend_add_req2(const char *ID1, const char *ID2, int group_id,int choose,
     char field[50] = "Id1,Id2,Groupint";
     char table_name[50] = "Friend";
     int state;
-if (choose ==0)//接受
-{
-    sprintf(value, "'%s','%s','%d'", ID2, ID1, group_id);
-    state= insert_data(mysql, field, table_name, value);
-    sprintf(value, "'%s','%s'", ID1, ID2);
-    state=update_data(mysql,table_name,"Groupint=-Groupint","Id1,Id2",value);
-}
-else {
-    sprintf(value, "'%s','%s'", ID1, ID2);
-    state=delete_data(mysql,table_name,"Id1,Id2",value);
-}
+    if (choose == 0)  //接受
+    {
+        sprintf(value, "'%s','%s','%d'", ID2, ID1, group_id);
+        state = insert_data(mysql, field, table_name, value);
+        sprintf(value, "'%s','%s'", ID1, ID2);
+        state = update_data(mysql, table_name, "Groupint=-Groupint", "Id1,Id2",
+                            value);
+    } else {
+        sprintf(value, "'%s','%s'", ID1, ID2);
+        state = delete_data(mysql, table_name, "Id1,Id2", value);
+    }
     close_connection(mysql);
-int status;
-Json::Value response;
-if(state==0){
-    status=NORMAL;
-}else {
-    status=EDATABASE_WRECK;
-}
-response["status"] = status;
-response["accept"]= choose;
+    int status;
+    Json::Value response;
+    if (state == 0) {
+        status = NORMAL;
+    } else {
+        status = EDATABASE_WRECK;
+    }
+    response["status"] = status;
+    response["accept"] = choose;
     uint32_t len = 0;
     uint8_t *pData = encode(FRIEND_ADD_SECOND_REP, response, len);
     User_connect_info *pUser_connect_info1 = ID2info[atoi(ID1)];
     send(pUser_connect_info1->user_fd, pData, len, 0);
 }
-
 
 // ID1请求给ID2发消息
 void send_message(const char *ID1, const char *ID2, const char *content,
@@ -796,8 +803,8 @@ void *handClient(void *arg) {
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 int choose = pMsg->body["choose"].asInt();
                 int group_id = pMsg->body["group_id"].asInt();
-               
-                friend_add_req2(ID1,ID2,group_id,choose,pUser_connect_info);
+
+                friend_add_req2(ID1, ID2, group_id, choose, pUser_connect_info);
             } else if (server_id == FRIEND_GROUP_CHANGE_REQ) {
                 // TODO:分组改变
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -821,8 +828,8 @@ void *handClient(void *arg) {
                 const char *question = pMsg->body["question"].asCString();
                 const char *answer = pMsg->body["answer"].asCString();
                 const char *description = pMsg->body["description"].asCString();
-                update_user_info(ID, name, photo_id, sex_id, tel, description,question,answer,
-                                 pUser_connect_info);
+                update_user_info(ID, name, photo_id, sex_id, tel, description,
+                                 question, answer, pUser_connect_info);
             } else if (server_id == MESSAGE_SEND) {
                 // 消息发送
                 const char *ID1 = pMsg->body["ID1"].asCString();
@@ -839,6 +846,8 @@ void *handClient(void *arg) {
                 const char *ID2 = pMsg->body["ID2"].asCString();
                 const char *file_name = pMsg->body["file_name"].asCString();
                 file_trans(ID1, ID2, file_name, pUser_connect_info);
+            } else if (server_id == MESSAGE_GROUP_SEND) {
+                send_message_to_all(buf, len, pUser_connect_info);
             }
         }
         // send(confd,buf,strlen(buf),0);

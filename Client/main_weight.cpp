@@ -293,8 +293,7 @@ void Main_Weight::hand_message()
             break;
 
         }
-       case MESSAGE_GROUP_NOTI:{
-
+       case MESSAGE_GROUP_SEND:{
             QString ID1 = QString(pMsg->body["ID1"].asCString());
             QString name=QString(pMsg->body["name"].asCString());
             QString content=QString(pMsg->body["content"].asCString());
@@ -304,7 +303,6 @@ void Main_Weight::hand_message()
             gp_chat->add_msg1(ID1, content);
             break;
         }
-        default:
         case FRIEND_ADD_FIRST_REP:{
             int status = pMsg->body["status"].asInt();
             if(status==0)
