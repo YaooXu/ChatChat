@@ -13,6 +13,8 @@ Chatroom::Chatroom(QTcpSocket *p_sock, QString tmp1, QString tmp2, QWidget *pare
     QWidget(parent)
 {
 
+    ip = getIP();
+    qDebug() << "获取ip = " << ip;
 
     p_chat_socket = p_sock;
     uID1 = tmp1;
@@ -41,24 +43,13 @@ Chatroom::~Chatroom()
 
 }
 
+
+//保存历史消息，不关闭chatroom
 void Chatroom::closeEvent(QCloseEvent* event)
 {
-    //当文档内容被修改时.
-//    if (ui.textEdit->document()->isModified())
     if(true)
     {
-        //跳出信息框，你是否要关闭.
-//        auto temp = QMessageBox::information(this, "tooltip", QString::fromLocal8Bit("你是否要关闭?"), QMessageBox::Yes | QMessageBox::No);
-//        if (temp == QMessageBox::Yes)
-//        {
-//            // 接受了 要关闭这个窗口的事件. accept和ignore只是作为一个标志.
-//            event->accept();
-//        }
-//        else
-//        {
-//            //忽略了 要关闭这个窗口的事件.当前窗口就不会被关闭.
-//            event->ignore();
-//        }
+
         this->hide();
     }
     else
@@ -129,9 +120,18 @@ void Chatroom::init_widget()//初始化相关的控件
     toolButton_4->setAutoRaise(true);
     toolButton_4->setIcon(QPixmap(":/src/img/color.png"));
 
-    toolButton = new QToolButton;
-    toolButton->setText(tr("显示主窗口"));
-    toolButton->setAutoRaise(true);
+    send_file_Button = new QToolButton;
+    send_file_Button->setText(tr("发送文件"));
+    send_file_Button->setAutoRaise(true);
+
+    //初始化文件相关组件
+    fDialog = new QFileDialog(this);
+    fDialog->setFileMode(QFileDialog::ExistingFiles);
+    connect(fDialog,SIGNAL(fileSelected ( const QString & )),this,SLOT(requser_send_files(const QString &)));
+    fDialog->hide();
+    udpSocket = new QUdpSocket(this);
+
+
 
     QHBoxLayout *layout2 = new QHBoxLayout;
     layout2->addWidget(fontComboBox);
@@ -140,7 +140,7 @@ void Chatroom::init_widget()//初始化相关的控件
     layout2->addWidget(toolButton_2);
     layout2->addWidget(toolButton_3);
     layout2->addWidget(toolButton_4);
-    layout2->addWidget(toolButton);
+    layout2->addWidget(send_file_Button);
 
     lineEdit = new QLineEdit;
 
@@ -169,7 +169,7 @@ void Chatroom::init_widget()//初始化相关的控件
     connect(toolButton_2, SIGNAL(clicked(bool)), this, SLOT(on_toolButton_2_clicked(bool)));
     connect(toolButton_3, SIGNAL(clicked(bool)), this, SLOT(on_toolButton_3_clicked(bool)));
     connect(toolButton_4, SIGNAL(clicked()), this, SLOT(on_toolButton_4_clicked()));
-    connect(toolButton, SIGNAL(clicked()), this, SLOT(on_toolButton_clicked()));
+    connect(send_file_Button, SIGNAL(clicked()), this, SLOT(on_send_file_Button_clicked()));
     connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(on_lineEdit_returnPressed()));
     connect(pushButton, SIGNAL(clicked()), this, SLOT(on_pushButton_clicked()));
 
@@ -300,8 +300,137 @@ void Chatroom::on_toolButton_4_clicked()//修改textBrowser字体颜色
     }
 }
 
-void Chatroom::on_toolButton_clicked()
+void Chatroom::on_send_file_Button_clicked()
 {
-//    main_w->hide();
-//    main_w->showNormal();
+    fDialog->show();
 }
+
+void Chatroom::readPendingDatagrams()
+{
+    while (udpSocket->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(udpSocket->pendingDatagramSize());
+        QHostAddress sender;
+        quint16 senderPort;
+        udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+
+        qDebug() << datagram;
+        if(datagram == "1"){
+            recip = sender;
+            qDebug() << "接收端同意, 设置发送端的recip =" << recip;
+            sendData();
+            break;
+        }
+        else {
+            qDebug() << "接收端拒绝， 关闭文件";
+            file->close();
+            break;
+        }
+    }
+}
+
+void Chatroom::sendData()
+{
+
+    SliderDemo *tmp = new SliderDemo();
+    tmp->setWindowFlags(Qt::WindowStaysOnTopHint);
+
+    int maxnum = int(file->size() / 80);
+//    tmp->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowStaysOnTopHint);
+    tmp->init_precess(100);
+    qDebug() << "file size : " << file->size() << "maxnum = " << maxnum;
+
+//    tmp->show();
+
+
+    int i = 0;
+    int current = 0;
+    while(!file->atEnd())
+    {
+
+//        qDebug() << "正在发送文件" << *file;
+        QByteArray line = file->read(80);
+        udpSocket->writeDatagram(line, line.length(), recip, 7755);
+        i++;
+//        if(i*100/maxnum>current)
+//        {
+//            current=i*100/maxnum;
+//            qDebug() << "刷新进度条：" << current;
+
+//            tmp->setprocess(current);
+
+
+//        }
+//        qDebug() << "sender发送消息" << line << zzz << line.size();
+    }
+
+    qDebug() << "sendData()：文件发送完成!然后关闭文件";
+    udpSocket->writeDatagram("#", 1, recip, 7755);
+    file->close();
+    QMessageBox::warning(this,tr("通知"),tr("发送成功！"),QMessageBox::Yes);
+    disconnect(udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+    udpSocket->close();
+
+}
+
+void Chatroom::requser_send_files(const QString & fs){
+    //选中文件点击open后会出发该信号 至在打开单一文件时出发
+
+    qDebug() <<"发送端选择：fs"<<fs;
+    files_name.clear();
+    files_name.append(fs);
+    qDebug() << "设置文件name：" << files_name;
+
+    if(file == nullptr)
+    {
+        file = new QFile;
+    }
+    file->setFileName(files_name);
+
+    qDebug() << "file" << *file;
+    if (!file->open(QIODevice::ReadOnly))
+    {
+        qDebug() << "发送端打开文件失败";
+        return;
+    }
+    else{
+        qDebug() << "发送端打开文件成功" << *file;
+    }
+    //向服务器发送文件申请
+
+    QStringList list = files_name.split("/");
+    uint32_t len = 0;
+    Json::Value message;
+    message["ID1"] = uID1.toStdString().c_str();
+    message["ID2"] = uID2.toStdString().c_str();
+    message["file_name"] = list.last().toStdString().c_str();
+    uint8_t *pData = encode(FILE_TRANS_REQ, message, len);
+    udpSocket->bind(QHostAddress::Any, 7758);
+    connect(udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+    qDebug() << "设置connect, 并且向服务器发送文件请求, files_name: " << list.last();
+    qDebug() << "发送段的ip = " << getIP();
+
+    p_chat_socket->write((char *)pData, len);
+
+}
+
+QString Chatroom::getIP()  //获取ip地址
+{
+    QList<QHostAddress> list = QNetworkInterface::allAddresses();
+    foreach (QHostAddress address, list){
+       if(address.protocol() == QAbstractSocket::IPv4Protocol){
+           if (address.toString().contains("127.0.")){
+               continue;
+           }
+           return address.toString();
+       }
+    }
+    return 0;
+}
+
+//void Chatroom::set_file_recever(QString rip)
+//{
+//    recip = QHostAddress(rip);
+//    qDebug() << "接收端成功设置recip" << recip;
+//}
+

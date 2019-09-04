@@ -37,6 +37,7 @@ public:
     void add_blacklist(QString id,QString name,QString iconc);   //添加黑名单
     void clear_list();
     bool is_empty();
+    QMap<QString, Chatroom*> Map_Chatroom;//ID1的好友ID2对应chatroom的指针
 
     QString userid;
     QTcpSocket *p_Friend_sock = nullptr;
