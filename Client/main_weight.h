@@ -37,7 +37,7 @@ public:
 
     void init_main_Weight();
     void set_Message_List(User_in_recent *p_list, int num);
-    void set_Friend_List();
+    void set_Friend_List(User_in_list *p_list, int num);
 
 
 
