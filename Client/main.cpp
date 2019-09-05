@@ -3,22 +3,21 @@
 #include "chatroom.h"
 #include "main_weight.h"
 #include "chatroom_plus.h"
+#include "sliderdemo.h"
+
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    Main_Weight *m = new Main_Weight();
+    Main_Weight *p_main_weight = new Main_Weight();
 
-    m->setWindowTitle("QQ");
-    //m->show();
-//    Chatroom *p_tmp = new Chatroom();
-//    p_tmp->setWindowTitle("Chatroom");
-//    p_tmp->resize(1600, 1200);
-//    p_tmp->show();
-//    Chatroom_Plus *tmp = new Chatroom_Plus();
+    p_main_weight->setWindowTitle("QQ");
+
+//    SliderDemo *tmp = new SliderDemo();
+
 //    tmp->show();
-
+//    tmp->slotStart();
 
     return a.exec();
 }

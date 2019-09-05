@@ -42,6 +42,8 @@ SOURCES += \
     addfri_interface.cpp \
     info.cpp \
     repository.cpp \
+    dialogrec.cpp \
+    sliderdemo.cpp \
     group_chat.cpp \
     receive_addfri_interface.cpp
 
@@ -62,6 +64,8 @@ HEADERS += \
     info.h \
     repository.h \
     my_include.h \
+    dialogrec.h \
+    sliderdemo.h \
     group_chat.h \
     receive_addfri_interface.h
 
@@ -78,6 +82,8 @@ FORMS += \
     addfri_interface.ui \
     info.ui \
     repository.ui \
+    dialogrec.ui \
+    sliderdemo.ui \
     group_chat.ui \
     receive_addfri_interface.ui
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>596</width>
-    <height>505</height>
+    <width>630</width>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,16 +37,6 @@
    </property>
    <property name="text">
     <string>在线用户：</string>
-   </property>
-  </widget>
-  <widget class="QListWidget" name="listWidget">
-   <property name="geometry">
-    <rect>
-     <x>350</x>
-     <y>50</y>
-     <width>171</width>
-     <height>321</height>
-    </rect>
    </property>
   </widget>
   <widget class="QLineEdit" name="pre_text">
@@ -115,6 +105,16 @@
      <y>50</y>
      <width>301</width>
      <height>321</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTextBrowser" name="p_textBrowser">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>50</y>
+     <width>191</width>
+     <height>331</height>
     </rect>
    </property>
   </widget>

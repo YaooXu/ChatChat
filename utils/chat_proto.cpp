@@ -10,8 +10,8 @@ const char *get_time() {
     tm *t = gmtime(&tt);
 
     char *res = new char[25];
-    sprintf(res, "%d-%02d-%02d %02d:%02d:%02d\n", t->tm_year + 1900, t->tm_mon + 1,
-           t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+    sprintf(res, "%d-%02d-%02d %02d:%02d:%02d\n", t->tm_year + 1900,
+            t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
     return res;
 }
 
@@ -310,7 +310,7 @@ User_in_list *decode2User_list(MyProtoMsg *pMsg, int &length) {
 User_info *decode2User_info(MyProtoMsg *pMsg, int &length) {
     // 客户端直接从字符串解包出User_in_list结构体数组
     // 查寻自己的信息
-//    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
+    //    MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
     User_info *pUser_info = new User_info[length];
@@ -335,26 +335,28 @@ User_info *decode2User_info(MyProtoMsg *pMsg, int &length) {
     return pUser_info;
 }
 
-User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length){
+User_in_recent *decode2User_recent(MyProtoMsg *pMsg, int &length) {
     // MyProtoMsg *pMsg = decode2Msg(buf, buf_len);
     // 结构体数组长度
     length = pMsg->body["length"].asInt();
-//    qDebug() << "结构体数组长度:" << length;
+    //    qDebug() << "结构体数组长度:" << length;
     User_in_recent *pUser_recent = new User_in_recent[length];
 
     for (int i = 0; i < length; i++) {
         // 需要强制转化一下,不然不能从const char * -> char *
         pUser_recent[i].ID = (char *)pMsg->body["list"][i]["ID"].asCString();
-        pUser_recent[i].last_message = (char *)pMsg->body["list"][i]["last_message"].asCString();
-        pUser_recent[i].time = (char *)pMsg->body["list"][i]["time"].asCString();
+        pUser_recent[i].last_message =
+            (char *)pMsg->body["list"][i]["last_message"].asCString();
+        pUser_recent[i].time =
+            (char *)pMsg->body["list"][i]["time"].asCString();
+        pUser_recent[i].photo_id = pMsg->body["list"][i]["photo_id"].asInt();
     }
     printf("User_info结构体数组长度: %d\n", length);
     return pUser_recent;
 }
 
-
 Message *decode2Message(MyProtoMsg *pMsg) {
-//    MyProtoMsg *pMsg = decode2Msg(buf, len);
+    //    MyProtoMsg *pMsg = decode2Msg(buf, len);
     Message *pMessage = new Message();
     pMessage->ID1 = (char *)pMsg->body["ID1"].asCString();
     pMessage->ID2 = (char *)pMsg->body["ID2"].asCString();
@@ -362,7 +364,6 @@ Message *decode2Message(MyProtoMsg *pMsg) {
     pMessage->time = (char *)pMsg->body["time"].asCString();
     return pMessage;
 }
-
 
 static char *get_my_ip() {
     struct ifaddrs *ifaddr, *ifa;

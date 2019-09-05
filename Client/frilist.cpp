@@ -36,6 +36,7 @@ FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlag
         qDebug()<<"重新分组";
         regroup_interface * regroup_friend = new regroup_interface(nullptr,userid,ID2_temp,p_Friend_sock);
         regroup_friend->show();
+
     });
     connect( buttonAction2, &QAction::triggered, [=]()
     {
@@ -48,9 +49,9 @@ FriList::FriList(QTcpSocket *p_sock, QString uID, QWidget *parent,Qt::WindowFlag
         qDebug()<<"查看好友资料";
         uint32_t len=0;
         Json::Value message;
-        message["ID2"]=ID2_temp.toStdString().c_str();
+        message["ID"]=ID2_temp.toStdString().c_str();
         uint8_t *pData=encode(GET_FRIEND_INF_REQ,message,len);
-        p_sock->write((char*)pData,len);
+        p_Friend_sock->write((char*)pData,len);
     });
 }
 
@@ -62,6 +63,7 @@ void FriList::setLay_friend()
     layout_fri = new QVBoxLayout(friend_box);
     layout_fri->setMargin(45);
     layout_fri->setAlignment(Qt::AlignLeft);
+
     this->addItem((QWidget*)friend_box,QStringLiteral("我的好友"));
 }
 
@@ -103,7 +105,7 @@ void FriList::setLay_blc()
 void FriList::add_friend(QString id, QString user, QString icon)//通过此类函数实现动态好友列表，即每刷新一次，重新将所 有好友add进去
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);//头像
+    QString iconpath = QString(":/src/img/%1.png").arg(icon);//头像
     QString text = QString("%1").arg(user);//昵称
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -123,7 +125,7 @@ void FriList::add_friend(QString id, QString user, QString icon)//通过此类�
     });
 
     //通过点击创建聊天窗口
-//    connect(tempButton, SIGNAL(clicked()), this, SLOT(create_Chatroom(tempButton->objectName())));
+    //    connect(tempButton, SIGNAL(clicked()), this, SLOT(create_Chatroom(tempButton->objectName())));
     connect(tempButton, &QToolButton::clicked, this, [=](){create_Chatroom(tempButton->objectName());});
 
 
@@ -134,7 +136,7 @@ void FriList::add_friend(QString id, QString user, QString icon)//通过此类�
 void FriList::add_blacklist(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
+    QString iconpath = QString(":/src/img/%1.png").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -161,7 +163,7 @@ void FriList::add_blacklist(QString id, QString name, QString icon)
 void FriList::add_family(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
+    QString iconpath = QString(":/src/img/%1.png").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -187,7 +189,7 @@ void FriList::add_family(QString id, QString name, QString icon)
 void FriList::add_colleague(QString id, QString name, QString icon)
 {
     QToolButton *tempButton = new QToolButton;
-    QString iconpath = QString(":/src/img/%1.jpg").arg(icon);
+    QString iconpath = QString(":/src/img/%1.png").arg(icon);
     QString text = QString("%1").arg(name);
     QString ID2=id;//好友ID
     tempButton->setText(text);
@@ -238,9 +240,18 @@ void FriList::add_classmate(QString id, QString name, QString icon)
 
 void FriList::create_Chatroom(QString uID)
 {
+//    qDebug() << "准备创建聊天室，ID1 = " << userid << ", ID2 = " << uID;
+    if(Map_Chatroom[uID] == nullptr)
+    {
         Chatroom *p_tmp = new Chatroom(p_Friend_sock, userid, uID);
+        Map_Chatroom.insert(uID, p_tmp);//创建了一个聊天窗口，插入map
+        p_tmp->setWindowTitle("Chatroom:" + userid + " to " + uID);
         p_tmp->resize(700, 600);
         p_tmp->show();
+    }
+    else {
+        Map_Chatroom[uID]->show();
+    }
 }
 
 void FriList::clear_list()

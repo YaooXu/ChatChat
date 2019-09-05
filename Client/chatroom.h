@@ -2,9 +2,11 @@
 //#define CHATROOM_H
 #pragma once
 #include <QWidget>
-
+#include <QGridLayout>
 #include "my_include.h"
+#include "sliderdemo.h"
 
+#include<QTextEdit>
 
 
 class Chatroom : public QWidget
@@ -17,10 +19,24 @@ public:
 
     ~Chatroom();
     void add_msg(QString delivername, QString msg);
+
+
+    void sendData();
+    QString getIP();
+
+    SliderDemo *tmp;
+
     QTcpSocket *p_chat_socket;
     QString uID1;
     QString uID2;
     QPushButton *pushButton;
+
+    QFileDialog *fDialog;
+    QUdpSocket *udpSocket;
+    QFile *file = nullptr;
+    QString files_name;
+    QString ip, serverIP;
+    QHostAddress recip;
 
 signals:
 
@@ -33,7 +49,11 @@ public slots:
     void on_toolButton_3_clicked(bool checked);
     void on_toolButton_4_clicked();
     void on_lineEdit_returnPressed();
-    void on_toolButton_clicked();
+    void on_send_file_Button_clicked();
+    void readPendingDatagrams();
+
+    void requser_send_files(const QString & fs);
+//    void set_file_recever(QString recip);
 //    Main_Weight *main_w;
 
 protected:
@@ -50,7 +70,7 @@ private:
     QToolButton *toolButton_2;
     QToolButton *toolButton_3;
     QToolButton *toolButton_4;
-    QToolButton *toolButton;
+    QToolButton *send_file_Button;
 
     QLineEdit *lineEdit;
 
